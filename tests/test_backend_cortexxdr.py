@@ -6,7 +6,6 @@ from sigma.backends.cortexxdr import CortexXDRBackend
 def cortexxdr_backend():
     return CortexXDRBackend()
 
-# TODO: implement tests for some basic queries and their expected results.
 def test_cortexxdr_and_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
         SigmaCollection.from_yaml("""
@@ -126,19 +125,40 @@ def test_cortexxdr_cidr_query(cortexxdr_backend : CortexXDRBackend):
                     SourceIp|cidr: 192.168.0.0/16
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = "ENUM.NETWORK") and (action_local_ip incidr "192.168.0.0/16" or action_remote_ip incidr "192.168.0.0/16")']
+    ) == ['dataset=xdr_data | filter event_type = "ENUM.NETWORK" and (action_local_ip incidr "192.168.0.0/16" or action_remote_ip incidr "192.168.0.0/16")']
 
-# TODO: implement tests for all backend features that don't belong to the base class defaults, e.g. features that were
-# implemented with custom code, deferred expressions etc.
 
 def test_cortexxdr_default_output(cortexxdr_backend : CortexXDRBackend):
     """Test for output format default."""
-    # TODO: implement a test for the output format
-    pass
+    assert cortexxdr_backend.convert(
+        SigmaCollection.from_yaml("""
+            title: Test
+            status: test
+            logsource:
+                category: process_creation
+                product: test_product
+            detection:
+                sel:
+                    Image: valueA
+                condition: sel
+        """)
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_CREATION) and (action_process_image_path = "valueA")']
 
 def test_cortexxdr_json_output(cortexxdr_backend : CortexXDRBackend):
     """Test for output format json."""
     # TODO: implement a test for the output format
-    pass
+    assert cortexxdr_backend.convert(
+        SigmaCollection.from_yaml("""
+            title: Test
+            status: test
+            logsource:
+                category: process_creation
+                product: test_product
+            detection:
+                sel:
+                    Image: valueA
+                condition: sel
+        """)
+    ) == {"queries":[{"query":'dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_CREATION) and (action_process_image_path = "valueA")', "title":"Test", "id":None, "description":None}]}
 
 
