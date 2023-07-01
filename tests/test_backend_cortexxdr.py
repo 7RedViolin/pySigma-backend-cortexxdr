@@ -158,7 +158,7 @@ def test_cortexxdr_json_output(cortexxdr_backend : CortexXDRBackend):
                 sel:
                     Image: valueA
                 condition: sel
-        """)
+        """), "json"
     ) == {"queries":[{"query":'dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and action_process_image_path = "valueA"', "title":"Test", "id":None, "description":None}]}
 
 
