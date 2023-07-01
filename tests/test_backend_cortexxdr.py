@@ -142,7 +142,7 @@ def test_cortexxdr_default_output(cortexxdr_backend : CortexXDRBackend):
                     Image: valueA
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_CREATION) and (action_process_image_path = "valueA")']
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and action_process_image_path = "valueA"']
 
 def test_cortexxdr_json_output(cortexxdr_backend : CortexXDRBackend):
     """Test for output format json."""
@@ -159,6 +159,6 @@ def test_cortexxdr_json_output(cortexxdr_backend : CortexXDRBackend):
                     Image: valueA
                 condition: sel
         """)
-    ) == {"queries":[{"query":'dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_CREATION) and (action_process_image_path = "valueA")', "title":"Test", "id":None, "description":None}]}
+    ) == {"queries":[{"query":'dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and action_process_image_path = "valueA"', "title":"Test", "id":None, "description":None}]}
 
 
