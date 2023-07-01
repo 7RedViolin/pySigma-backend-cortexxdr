@@ -71,10 +71,10 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             'SourcePort': ['action_local_port', 'action_remote_port'],
             'SourceIp': ['action_local_ip', 'action_remote_ip'],
             'Protocol': 'action_network_protocol',
-            'dst_ip': ['action_local_port', 'action_remote_port'],
-            'dst_port': ['action_local_ip', 'action_remote_ip'],
-            'src_ip': ['action_local_port', 'action_remote_port'],
-            'src_port': ['action_local_ip', 'action_remote_ip'],
+            'dst_ip': ['action_local_ip', 'action_remote_ip'],
+            'dst_port': ['action_local_port', 'action_remote_port'],
+            'src_ip': ['action_local_ip', 'action_remote_ip'],
+            'src_port': ['action_local_port', 'action_remote_port'],
         }
     }
 
