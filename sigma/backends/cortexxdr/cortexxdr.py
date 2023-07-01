@@ -46,13 +46,15 @@ class CortexXDRBackend(TextQueryBackend):
     field_escape_pattern : ClassVar[Pattern] = re.compile("\\s")   # All matches of this pattern are prepended with the string contained in field_escape.
 
     ## Values
-    str_quote       : ClassVar[str] = '"'     # string quoting character (added as escaping character)
-    escape_char     : ClassVar[str] = "\\"    # Escaping character for special characters inside string
-    wildcard_multi  : ClassVar[str] = "*"     # Character used as multi-character wildcard
-    wildcard_single : ClassVar[str] = "*"     # Character used as single-character wildcard
-    add_escaped     : ClassVar[str] = "\\"    # Characters quoted in addition to wildcards and string quote
-    filter_chars    : ClassVar[str] = ""      # Characters filtered
-    bool_values     : ClassVar[Dict[bool, str]] = {   # Values to which boolean values are mapped.
+    str_quote         : ClassVar[str] = '"'     # string quoting character (added as escaping character)
+    str_quote_pattern : ClassVar[Optional[Pattern]] = re.compile("^ENUM\.[A-Z_]{1,}$")      # Quote string values that match (or don't match) this pattern
+    str_quote_pattern_negation : ClassVar[bool] = True  # Negate str_quote_pattern result
+    escape_char       : ClassVar[str] = "\\"    # Escaping character for special characters inside string
+    wildcard_multi    : ClassVar[str] = "*"     # Character used as multi-character wildcard
+    wildcard_single   : ClassVar[str] = "*"     # Character used as single-character wildcard
+    add_escaped       : ClassVar[str] = "\\"    # Characters quoted in addition to wildcards and string quote
+    filter_chars      : ClassVar[str] = ""      # Characters filtered
+    bool_values       : ClassVar[Dict[bool, str]] = {   # Values to which boolean values are mapped.
         True: "true",
         False: "false",
     }
@@ -124,8 +126,7 @@ class CortexXDRBackend(TextQueryBackend):
     deferred_start : ClassVar[str] = "\n| "               # String used as separator between main query and deferred parts
     deferred_separator : ClassVar[str] = "\n| "           # String used to join multiple deferred query parts
     #deferred_only_query : ClassVar[str] = "*"            # String used as query if final query only contains deferred expression
-    
-    
+
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> Any:
         """
         Finalize conversion result of a query

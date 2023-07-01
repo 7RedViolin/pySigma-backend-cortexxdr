@@ -20,7 +20,7 @@ def test_cortexxdr_and_expression(cortexxdr_backend : CortexXDRBackend):
                     ParentImage: valueB
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_sub_type = "ENUM.PROCESS_START") and (action_process_image_path = "valueA" and actor_process_image_path = "valueB")']
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_image_path = "valueA" and actor_process_image_path = "valueB")']
 
 def test_cortexxdr_or_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -37,7 +37,7 @@ def test_cortexxdr_or_expression(cortexxdr_backend : CortexXDRBackend):
                     ParentImage: valueB
                 condition: 1 of sel*
         """)
-    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_sub_type = "ENUM.PROCESS_START") and (action_process_image_path = "valueA" or actor_process_image_path = "valueB")']
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_image_path = "valueA" or actor_process_image_path = "valueB")']
 
 def test_cortexxdr_and_or_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -57,7 +57,7 @@ def test_cortexxdr_and_or_expression(cortexxdr_backend : CortexXDRBackend):
                         - valueB2
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_sub_type = "ENUM.PROCESS_START") and ((action_process_image_path in ("valueA1", "valueA2")) and (actor_process_image_path in ("valueB1", "valueB2")))']
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and ((action_process_image_path in ("valueA1", "valueA2")) and (actor_process_image_path in ("valueB1", "valueB2")))']
 
 def test_cortexxdr_or_and_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -76,7 +76,7 @@ def test_cortexxdr_or_and_expression(cortexxdr_backend : CortexXDRBackend):
                     ParentImage: valueB2
                 condition: 1 of sel*
         """)
-    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_sub_type = "ENUM.PROCESS_START") and ((action_process_image_path = "valueA1" and actor_process_image_path = "valueB1") or (action_process_image_path = "valueA2" and actor_process_image_path = "valueB2"))']
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and ((action_process_image_path = "valueA1" and actor_process_image_path = "valueB1") or (action_process_image_path = "valueA2" and actor_process_image_path = "valueB2"))']
 
 def test_cortexxdr_in_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -94,7 +94,7 @@ def test_cortexxdr_in_expression(cortexxdr_backend : CortexXDRBackend):
                         - valueC*
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_sub_type = "ENUM.PROCESS_START") and (action_process_image_path in ("valueA", "valueB", "valueC*"))']
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_image_path in ("valueA", "valueB", "valueC*"))']
 
 def test_cortexxdr_regex_query(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -110,7 +110,7 @@ def test_cortexxdr_regex_query(cortexxdr_backend : CortexXDRBackend):
                     ParentImage: foo
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_sub_type = "ENUM.PROCESS_START") and (action_process_image_path ~= "foo.*bar" and actor_process_image_path = "foo")']
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_image_path ~= "foo.*bar" and actor_process_image_path = "foo")']
 
 def test_cortexxdr_cidr_query(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -125,7 +125,7 @@ def test_cortexxdr_cidr_query(cortexxdr_backend : CortexXDRBackend):
                     SourceIp|cidr: 192.168.0.0/16
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter event_type = "ENUM.NETWORK" and (action_local_ip incidr "192.168.0.0/16" or action_remote_ip incidr "192.168.0.0/16")']
+    ) == ['dataset=xdr_data | filter event_type = ENUM.NETWORK and (action_local_ip incidr "192.168.0.0/16" or action_remote_ip incidr "192.168.0.0/16")']
 
 
 def test_cortexxdr_default_output(cortexxdr_backend : CortexXDRBackend):
