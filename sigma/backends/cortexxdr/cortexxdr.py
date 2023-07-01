@@ -67,7 +67,7 @@ class CortexXDRBackend(TextQueryBackend):
     # Regular expression query as format string with placeholders {field}, {regex}, {flag_x} where x
     # is one of the flags shortcuts supported by Sigma (currently i, m and s) and refers to the
     # token stored in the class variable re_flags.
-    re_expression : ClassVar[str] = "{field}~={regex}"
+    re_expression : ClassVar[str] = "{field} ~= \"{regex}\""
     re_escape_char : ClassVar[str] = "\\"               # Character used for escaping in regular expressions
     re_escape : ClassVar[Tuple[str]] = ()               # List of strings that are escaped
     re_escape_escape_char : bool = True                 # If True, the escape character is also escaped
@@ -84,7 +84,7 @@ class CortexXDRBackend(TextQueryBackend):
 
     # cidr expressions
     cidr_wildcard : ClassVar[str] = "*"    # Character used as single wildcard
-    cidr_expression : ClassVar[str] = "{field} incidr {value}"    # CIDR expression query as format string with placeholders {field} = {value}
+    cidr_expression : ClassVar[str] = "{field} incidr \"{value}\""    # CIDR expression query as format string with placeholders {field} = {value}
 
     # Numeric comparison operators
     compare_op_expression : ClassVar[str] = "{field} {operator} {value}"  # Compare operation query as format string with placeholders {field}, {operator} and {value}
@@ -110,7 +110,7 @@ class CortexXDRBackend(TextQueryBackend):
     # Field value in list, e.g. "field in (value list)" or "field containsall (value list)"
     convert_or_as_in : ClassVar[bool] = True                     # Convert OR as in-expression
     convert_and_as_in : ClassVar[bool] = False                    # Convert AND as in-expression
-    in_expressions_allow_wildcards : ClassVar[bool] = False       # Values in list can contain wildcards. If set to False (default) only plain values are converted into in-expressions.
+    in_expressions_allow_wildcards : ClassVar[bool] = True       # Values in list can contain wildcards. If set to False (default) only plain values are converted into in-expressions.
     field_in_list_expression : ClassVar[str] = "{field} {op} ({list})"  # Expression for field in list of values as format string with placeholders {field}, {op} and {list}
     or_in_operator : ClassVar[str] = "in"               # Operator used to convert OR into in-expressions. Must be set if convert_or_as_in is set
     list_separator : ClassVar[str] = ", "               # List element separator
