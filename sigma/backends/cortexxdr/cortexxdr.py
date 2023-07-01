@@ -2,12 +2,13 @@ from sigma.conversion.state import ConversionState
 from sigma.rule import SigmaRule
 from sigma.processing.pipeline import ProcessingPipeline
 from sigma.conversion.base import TextQueryBackend
-from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, ConditionNOT
+from sigma.conditions import ConditionItem, ConditionAND, ConditionOR, ConditionNOT, ConditionFieldEqualsValueExpression
 from sigma.types import SigmaCompareExpression, SigmaRegularExpression, SigmaRegularExpressionFlag
+from sigma.conversion.deferred import DeferredQueryExpression
 from sigma.pipelines.cortexxdr import CortexXDR_pipeline
 import sigma
 import re
-from typing import ClassVar, Dict, Tuple, Pattern, List, Any, Optional
+from typing import ClassVar, Dict, Tuple, Pattern, List, Any, Optional, Union
 
 class CortexXDRBackend(TextQueryBackend):
     """CortexXDR backend."""
@@ -126,6 +127,16 @@ class CortexXDRBackend(TextQueryBackend):
     deferred_start : ClassVar[str] = "\n| "               # String used as separator between main query and deferred parts
     deferred_separator : ClassVar[str] = "\n| "           # String used to join multiple deferred query parts
     #deferred_only_query : ClassVar[str] = "*"            # String used as query if final query only contains deferred expression
+
+    def convert_condition_field_eq_val_num(self, cond : ConditionFieldEqualsValueExpression, state : ConversionState) -> Union[str, DeferredQueryExpression]:
+        """
+        Conversion of field = number value expressions
+        In Cortex XDR, number fields must be treated as strings and quoted
+        """
+        try:
+            return self.escape_and_quote_field(cond.field) + self.eq_token + '"' + str(cond.value) + '"'
+        except TypeError:       # pragma: no cover
+            raise NotImplementedError("Field equals numeric value expressions are not supported by the backend.")
 
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> Any:
         """
