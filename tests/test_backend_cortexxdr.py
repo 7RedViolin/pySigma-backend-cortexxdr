@@ -13,15 +13,15 @@ def test_cortexxdr_and_expression(cortexxdr_backend : CortexXDRBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
+                category: process_creation
                 product: test_product
             detection:
                 sel:
-                    fieldA: valueA
-                    fieldB: valueB
+                    Image: valueA
+                    ParentImage: valueB
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
+    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_type = "ENUM.PROCESS_START") and (action_process_image_path = "valueA" and actor_process_image_path = "valueB")']
 
 def test_cortexxdr_or_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -29,16 +29,16 @@ def test_cortexxdr_or_expression(cortexxdr_backend : CortexXDRBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
+                category: process_creation
                 product: test_product
             detection:
                 sel1:
-                    fieldA: valueA
+                    Image: valueA
                 sel2:
-                    fieldB: valueB
+                    ParentImage: valueB
                 condition: 1 of sel*
         """)
-    ) == ['<insert expected result here>']
+    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_type = "ENUM.PROCESS_START") and ((action_process_image_path = "valueA") or (actor_process_image_path = "valueB"))']
 
 def test_cortexxdr_and_or_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -46,19 +46,19 @@ def test_cortexxdr_and_or_expression(cortexxdr_backend : CortexXDRBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
+                category: process_creation
                 product: test_product
             detection:
                 sel:
-                    fieldA:
+                    Image:
                         - valueA1
                         - valueA2
-                    fieldB:
+                    ParentImage:
                         - valueB1
                         - valueB2
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
+    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_type = "ENUM.PROCESS_START") and ((action_process_image_path = "valueA1" or action_process_image_path = "valueA2") and (actor_process_image_path = "valueB1" or actor_process_image_path = "valueB2))']
 
 def test_cortexxdr_or_and_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -66,18 +66,18 @@ def test_cortexxdr_or_and_expression(cortexxdr_backend : CortexXDRBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
+                category: process_creation
                 product: test_product
             detection:
                 sel1:
-                    fieldA: valueA1
-                    fieldB: valueB1
+                    Image: valueA1
+                    ParentImage: valueB1
                 sel2:
-                    fieldA: valueA2
-                    fieldB: valueB2
+                    Image: valueA2
+                    ParentImage: valueB2
                 condition: 1 of sel*
         """)
-    ) == ['<insert expected result here>']
+    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_type = "ENUM.PROCESS_START") and ((action_process_image_path = "valueA1" and actor_process_image_path = "valueB1") or (action_process_image_path = "valueA2" and actor_process_image_path = "valueB2"))']
 
 def test_cortexxdr_in_expression(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -85,17 +85,17 @@ def test_cortexxdr_in_expression(cortexxdr_backend : CortexXDRBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
+                category: process_creation
                 product: test_product
             detection:
                 sel:
-                    fieldA:
+                    Image:
                         - valueA
                         - valueB
                         - valueC*
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
+    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_type = "ENUM.PROCESS_START") and (action_process_image_path in ("valueA", "valueB", "valueC*"))']
 
 def test_cortexxdr_regex_query(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -103,15 +103,15 @@ def test_cortexxdr_regex_query(cortexxdr_backend : CortexXDRBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
+                category: process_creation
                 product: test_product
             detection:
                 sel:
-                    fieldA|re: foo.*bar
-                    fieldB: foo
+                    Image|re: foo.*bar
+                    ParentImage: foo
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
+    ) == ['dataset=xdr_data | filter (event_type = "ENUM.PROCESS" and event_type = "ENUM.PROCESS_START") and (action_process_image_path ~= "foo.*bar" and actor_process_image_path = "foo")']
 
 def test_cortexxdr_cidr_query(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -119,34 +119,17 @@ def test_cortexxdr_cidr_query(cortexxdr_backend : CortexXDRBackend):
             title: Test
             status: test
             logsource:
-                category: test_category
+                category: network_connection
                 product: test_product
             detection:
                 sel:
-                    field|cidr: 192.168.0.0/16
+                    SourceIp|cidr: 192.168.0.0/16
                 condition: sel
         """)
-    ) == ['<insert expected result here>']
-
-def test_cortexxdr_field_name_with_whitespace(cortexxdr_backend : CortexXDRBackend):
-    assert cortexxdr_backend.convert(
-        SigmaCollection.from_yaml("""
-            title: Test
-            status: test
-            logsource:
-                category: test_category
-                product: test_product
-            detection:
-                sel:
-                    field name: value
-                condition: sel
-        """)
-    ) == ['<insert expected result here>']
+    ) == ['dataset=xdr_data | filter (event_type = "ENUM.NETWORK") and (action_local_ip incidr "192.168.0.0/16" or action_remote_ip incidr "192.168.0.0/16")']
 
 # TODO: implement tests for all backend features that don't belong to the base class defaults, e.g. features that were
 # implemented with custom code, deferred expressions etc.
-
-
 
 def test_cortexxdr_default_output(cortexxdr_backend : CortexXDRBackend):
     """Test for output format default."""

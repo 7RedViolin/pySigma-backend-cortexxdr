@@ -7,14 +7,12 @@
 This is the CortexXDR backend for pySigma. It provides the package `sigma.backends.cortexxdr` with the `CortexXDRBackend` class.
 Further, it contains the following processing pipelines in `sigma.pipelines.cortexxdr`:
 
-* pipeline1: purpose
-* pipeline2: purpose
+* CortexXDR: Uses the XQL query syntax
 
 It supports the following output formats:
 
-* default: plain CortexXDR queries
-* format_1: purpose
-* format_2: purpose
+* default: plain CortexXDR XQL queries
+* json: JSON-formatted CortexXDR XQL queries
 
 This backend is currently maintained by:
 
