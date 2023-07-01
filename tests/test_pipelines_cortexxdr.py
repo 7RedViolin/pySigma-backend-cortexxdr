@@ -80,7 +80,8 @@ def test_cortexxdr_process_creation_mapping(cortexxdr_backend : CortexXDRBackend
           'action_process_image_path = "valueA" and action_process_signature_product = "bar foo" and action_process_signature_vendor = "foo foo" and ' + 
           'action_process_image_command_line = "invoke-mimikatz" and action_process_cwd = "/etc" and action_process_username = "administrator" and ' + 
           'action_process_integrity_level = "bar bar" and action_process_image_md5 = "asdfasdfasdfasdfasdf" and ' + 
-          'action_process_image_sha256 = "asdfasdfasdfasdfasdfasdfasdfasdf" and actor_process_os_pid = "13" and actor_process_image_command_line = "Get-Path")']
+          'action_process_image_sha256 = "asdfasdfasdfasdfasdfasdfasdfasdf" and actor_process_os_pid = "13" and actor_process_image_path = "valueB" and ' + 
+          'actor_process_image_command_line = "Get-Path")']
 
 def test_cortexxdr_file_mapping(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -184,7 +185,7 @@ def test_cortexxdr_network_mapping(cortexxdr_backend : CortexXDRBackend):
           '(action_local_port = "135" or action_remote_port = "135") and (action_local_ip = "1.1.1.1" or action_remote_ip = "1.1.1.1") and ' + 
           'action_network_protocol = "udp" and (action_local_ip = "2.2.2.2" or action_remote_ip = "2.2.2.2") and ' + 
           '(action_local_port = "80" or action_remote_port = "80") and (action_local_ip = "3.3.3.3" or action_remote_ip = "3.3.3.3") and ' + 
-          '(action_local_port = "8080" or action_remote_port = "8080))']
+          '(action_local_port = "8080" or action_remote_port = "8080"))']
 
 def test_cortexxdr_unsupported_rule_type(cortexxdr_backend : CortexXDRBackend):
   with pytest.raises(ValueError):
