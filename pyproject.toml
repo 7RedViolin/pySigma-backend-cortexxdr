@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pySigma-backend-cortexxdr"
-version = "0.1.0"
+version = "0.1.1"
 description = "pySigma CortexXDR backend"
 authors = ["Cori Smith <cs2718281@gmail.com>"]
 license = "MIT"
