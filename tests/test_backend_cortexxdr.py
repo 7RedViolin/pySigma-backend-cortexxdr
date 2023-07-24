@@ -177,6 +177,6 @@ def test_cortexxdr_returned_fields(cortexxdr_backend : CortexXDRBackend):
                 condition: sel
             fields:
                 - Image
-                - Commandline
+                - CommandLine
         """)
     ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_image_path = "valueA") | fields action_process_image_path,actor_process_image_path = "valueB")']
