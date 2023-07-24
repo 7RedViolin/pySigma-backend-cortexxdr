@@ -128,16 +128,6 @@ class CortexXDRBackend(TextQueryBackend):
     deferred_separator : ClassVar[str] = "\n| "           # String used to join multiple deferred query parts
     #deferred_only_query : ClassVar[str] = "*"            # String used as query if final query only contains deferred expression
 
-    def convert_condition_field_eq_val_num(self, cond : ConditionFieldEqualsValueExpression, state : ConversionState) -> Union[str, DeferredQueryExpression]:
-        """
-        Conversion of field = number value expressions
-        In Cortex XDR, number fields must be treated as strings and quoted
-        """
-        try:
-            return self.escape_and_quote_field(cond.field) + self.eq_token + '"' + str(cond.value) + '"'
-        except TypeError:       # pragma: no cover
-            raise NotImplementedError("Field equals numeric value expressions are not supported by the backend.")
-
     def finalize_query_default(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> Any:
         """
         Finalize conversion result of a query
