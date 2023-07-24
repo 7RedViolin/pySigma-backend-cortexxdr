@@ -162,3 +162,21 @@ def test_cortexxdr_json_output(cortexxdr_backend : CortexXDRBackend):
     ) == {"queries":[{"query":'dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and action_process_image_path = "valueA"', "title":"Test", "id":None, "description":None}]}
 
 
+
+def test_cortexxdr_returned_fields(cortexxdr_backend : CortexXDRBackend):
+    assert cortexxdr_backend.convert(
+        SigmaCollection.from_yaml("""
+            title: Test
+            status: test
+            logsource:
+                category: process_creation
+                product: test_product
+            detection:
+                sel:
+                    Image: valueA
+                condition: sel
+            fields:
+                - Image
+                - Commandline
+        """)
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_image_path = "valueA") | fields action_process_image_path,actor_process_image_path = "valueB")']
