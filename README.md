@@ -1,6 +1,6 @@
 ![Tests](https://github.com/7RedViolin/pySigma-backend-cortexxdr/actions/workflows/test.yml/badge.svg)
 ![Coverage Badge](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/7RedViolin/18755c1cbd3b77ad90ce5da485b5bdcd/raw/7RedViolin-pySigma-backend-cortexxdr.json)
-![Status](https://img.shields.io/badge/Status-pre--release-orange)
+![Status](https://img.shields.io/badge/Status-stable-green)
 
 # pySigma CortexXDR Backend
 
