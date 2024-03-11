@@ -1,9 +1,13 @@
+from typing import Union
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
-from sigma.processing.transformations import AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, SetStateTransformation, ChangeLogsourceTransformation
-from sigma.processing.conditions import LogsourceCondition, IncludeFieldCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
+from sigma.processing.transformations import ConditionTransformation, AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation
+from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
 from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
-from sigma.rule import SigmaDetectionItem
+from sigma.processing.postprocessing import QueryPostprocessingTransformation
+from sigma.rule import SigmaDetectionItem, SigmaDetection, SigmaRule
 from sigma.exceptions import SigmaTransformationError
+import re
+import json
 
 class InvalidFieldTransformation(DetectionItemFailureTransformation):
     """
@@ -15,6 +19,59 @@ class InvalidFieldTransformation(DetectionItemFailureTransformation):
         field_name = detection_item.field
         self.message = f"Invalid SigmaDetectionItem field name encountered: {field_name}. " + self.message
         raise SigmaTransformationError(self.message)
+
+## Custom QueryPostprocessingTransformation to convert string values in IntegrityLevel field to integer range, if applicable
+class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation):
+    """Replace query part specified by regular expression with a given string."""
+
+    def apply(
+        self, pipeline: "sigma.processing.pipeline.ProcessingPipeline", rule: SigmaRule, query: Union[str, dict]
+    ) -> Union[str, dict]:
+
+        if isinstance(query, dict):
+            output_type = 'json'
+            query = json.dumps(query)
+        else:
+            output_type = 'default'
+
+        self.identifier = 'replace_integrity_thing'
+        field_name = 'action_process_integrity_level'
+
+        super().apply(pipeline, rule, query)
+
+        integrity_level_ranges ={
+            'UNTRUSTED': f'{field_name} lt 4096',
+            'LOW': f'({field_name} gte 4096 and {field_name} lt 8192)',
+            'MEDIUM': f'({field_name} gte 8192 and {field_name} lt 12288)',
+            'HIGH': f'({field_name} gte 12288 and {field_name} lt 16384)',
+            'SYSTEM': f'{field_name} gte 16384'
+        }
+
+        single_pattern = '(?i)' + field_name + ' = "(' + '|'.join(integrity_level_ranges) + ')"'
+        multi_pattern = '(?i)' + field_name + " in \\(((\"(" + '|'.join(integrity_level_ranges) + ")\")((, )*)){1,}\\)"
+
+        if re.search(single_pattern, query): # for single value
+            for level in integrity_level_ranges.items():
+                query = re.sub(f'(?i){field_name} = "{level[0]}"', level[1], query)
+
+        while re.search(multi_pattern, query): # for multiple values
+            matches = re.search(multi_pattern, query)
+            target_string = matches.group(0)
+
+            values = (re.sub(f"(?i){field_name} in \\(", '', target_string)).replace(')', '').replace('"', '').split(',')
+            replacement_values = []
+
+            for value in values:
+                if value.strip().upper() in integrity_level_ranges.keys():
+                    replacement_values.append(integrity_level_ranges[value.strip().upper()])
+
+            replacement_string = '(' + ' or '.join(replacement_values) + ')'
+            query = query.replace(target_string, replacement_string)
+
+        if output_type == 'json':
+            query = json.loads(query)
+
+        return query, True
 
 
 def CortexXDR_pipeline() -> ProcessingPipeline:
@@ -81,7 +138,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
     os_filter = [
         # Windows
         ProcessingItem(
-            identifier="cb_windows_os",
+            identifier="cortexxdr_windows_os",
             transformation=AddConditionTransformation({
                 "agent_os_type": "ENUM.AGENT_OS_WINDOWS"
             }),
@@ -91,7 +148,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
         ),
         # Linux
         ProcessingItem(
-            identifier="cb_linux_os",
+            identifier="cortexxdr_linux_os",
             transformation=AddConditionTransformation({
                 "agent_os_type": "ENUM.AGENT_OS_LINUX"
             }),
@@ -101,7 +158,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
         ),
         # macOS
         ProcessingItem(
-            identifier="cb_macos_os",
+            identifier="cortexxdr_macos_os",
             transformation=AddConditionTransformation({
                 "agent_os_type": "ENUM.AGENT_OS_MAC"
             }),
@@ -173,8 +230,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
     field_mappings = [
         ProcessingItem(
             identifier="cortex_process_creation_fieldmapping",
-            transformation=FieldMappingTransformation(translation_dict['process_creation']
-            ),
+            transformation=FieldMappingTransformation(translation_dict['process_creation']),
             rule_conditions=[
                 LogsourceCondition(category="process_creation")
             ]
@@ -278,5 +334,8 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             *field_mappings,
             *change_logsource_info,
             *unsupported_rule_types,
-        ]
+        ],
+        postprocessing_items=[
+            ReplaceIntegrityLevelQueryTransformation(),
+        ],
     )

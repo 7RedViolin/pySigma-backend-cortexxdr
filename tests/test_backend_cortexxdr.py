@@ -127,7 +127,6 @@ def test_cortexxdr_cidr_query(cortexxdr_backend : CortexXDRBackend):
         """)
     ) == ['dataset=xdr_data | filter event_type = ENUM.NETWORK and (action_local_ip incidr "192.168.0.0/16" or action_remote_ip incidr "192.168.0.0/16")']
 
-
 def test_cortexxdr_default_output(cortexxdr_backend : CortexXDRBackend):
     """Test for output format default."""
     assert cortexxdr_backend.convert(
@@ -160,8 +159,6 @@ def test_cortexxdr_json_output(cortexxdr_backend : CortexXDRBackend):
                 condition: sel
         """), "json"
     ) == {"queries":[{"query":'dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and action_process_image_path = "valueA"', "title":"Test", "id":None, "description":None}]}
-
-
 
 def test_cortexxdr_returned_fields(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(

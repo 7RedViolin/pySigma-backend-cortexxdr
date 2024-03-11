@@ -51,6 +51,39 @@ def test_cortexxdr_osx_os_filter(cortexxdr_backend : CortexXDRBackend):
         """)
     ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_MAC and action_process_image_path = "valueA")']
 
+def test_cortexxdr_integrity_levels_filter_single(cortexxdr_backend: CortexXDRBackend):
+    assert cortexxdr_backend.convert(
+        SigmaCollection.from_yaml("""
+            title: Test
+            status: test
+            logsource:
+                category: process_creation
+                product: windows
+            detection:
+                sel:
+                    IntegrityLevel: LOW
+                condition: sel
+        """)
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and (action_process_integrity_level gte 4096 and action_process_integrity_level lt 8192))']
+
+def test_cortexxdr_integrity_levels_filter_multiple(cortexxdr_backend: CortexXDRBackend):
+    assert cortexxdr_backend.convert(
+        SigmaCollection.from_yaml("""
+            title: Test
+            status: test
+            logsource:
+                category: process_creation
+                product: windows
+            detection:
+                sel:
+                    IntegrityLevel:
+                    - LOW
+                    - HIGH
+                condition: sel
+        """)
+    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and (((action_process_integrity_level gte 4096 and action_process_integrity_level lt 8192) or (action_process_integrity_level gte 12288 and action_process_integrity_level lt 16384))))']
+
+
 def test_cortexxdr_process_creation_mapping(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
         SigmaCollection.from_yaml("""

@@ -35,7 +35,7 @@ plugins.get_plugin_by_id("cortexxdr").install()
 
 ### sigma-cli
 ```bash
-sigma convert -t cortexxdr proc_creation_win_office_onenote_susp_child_processes.yml
+sigma convert -t cortexxdr proc_creation_win_java_keytool_susp_child_process.yml
 ```
 
 ### pySigma
