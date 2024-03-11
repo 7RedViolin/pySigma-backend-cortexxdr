@@ -37,8 +37,8 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
             'SYSTEM': f'{field_name} gte 16384'
         }
 
-        single_pattern = f'(?i){field_name} = "(' + '|'.join(integrity_level_ranges) + '})"'
-        multi_pattern = '(?i)' + field_name + ' in \((("(' + '|'.join(integrity_level_ranges) + ')")((, )*)){1,}\)'
+        single_pattern = '(?i)' + field_name + '"(' + '|'.join(integrity_level_ranges) + '})"'
+        multi_pattern = '(?i)' + field_name + " in \(((\"(" + '|'.join(integrity_level_ranges) + ")\")((, )*)){1,}\)"
 
         if re.search(single_pattern, query): # for single value
             for level in integrity_level_ranges.items():
