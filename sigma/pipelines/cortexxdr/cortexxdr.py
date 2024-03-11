@@ -48,7 +48,7 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
             matches = re.search(multi_pattern, query)
             target_string = matches.group(0)
 
-            values = (re.sub(f'(?i){field_name} in \(', '', target_string)).replace(')', '').replace('"', '').split(',')
+            values = (re.sub(f"(?i){field_name} in \(", '', target_string)).replace(')', '').replace('"', '').split(',')
             replacement_values = []
 
             for value in values:
