@@ -1,3 +1,4 @@
+from typing import Any
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
 from sigma.processing.transformations import ConditionTransformation, AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation
 from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
@@ -23,10 +24,15 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
     """Replace query part specified by regular expression with a given string."""
 
     def apply(
-        self, pipeline: "sigma.processing.pipeline.ProcessingPipeline", rule: SigmaRule, query: str
+        self, pipeline: "sigma.processing.pipeline.ProcessingPipeline", rule: SigmaRule, query: Any
     ):
+        try:
+            query = str(query)
+        except:
+            raise ValueError
         self.identifier = 'replace_integrity_thing'
         field_name = 'action_process_integrity_level'
+
         super().apply(pipeline, rule, query)
 
         integrity_level_ranges ={
