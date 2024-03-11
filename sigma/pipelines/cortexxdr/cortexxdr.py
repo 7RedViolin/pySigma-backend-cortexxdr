@@ -38,7 +38,7 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
         }
 
         single_pattern = '(?i)' + field_name + '"(' + '|'.join(integrity_level_ranges) + '})"'
-        multi_pattern = '(?i)' + field_name + " in \(((\"(" + '|'.join(integrity_level_ranges) + ")\")((, )*)){1,}\)"
+        multi_pattern = '(?i)' + field_name + " in \\(((\"(" + '|'.join(integrity_level_ranges) + ")\")((, )*)){1,}\\)"
 
         if re.search(single_pattern, query): # for single value
             for level in integrity_level_ranges.items():
@@ -48,7 +48,7 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
             matches = re.search(multi_pattern, query)
             target_string = matches.group(0)
 
-            values = (re.sub(f"(?i){field_name} in \(", '', target_string)).replace(')', '').replace('"', '').split(',')
+            values = (re.sub(f"(?i){field_name} in \\(", '', target_string)).replace(')', '').replace('"', '').split(',')
             replacement_values = []
 
             for value in values:
