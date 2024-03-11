@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Union
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
 from sigma.processing.transformations import ConditionTransformation, AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation
 from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
@@ -7,6 +7,7 @@ from sigma.processing.postprocessing import QueryPostprocessingTransformation
 from sigma.rule import SigmaDetectionItem, SigmaDetection, SigmaRule
 from sigma.exceptions import SigmaTransformationError
 import re
+import json
 
 class InvalidFieldTransformation(DetectionItemFailureTransformation):
     """
@@ -24,12 +25,15 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
     """Replace query part specified by regular expression with a given string."""
 
     def apply(
-        self, pipeline: "sigma.processing.pipeline.ProcessingPipeline", rule: SigmaRule, query: Any
-    ):
-        try:
-            query = str(query)
-        except:
-            raise ValueError
+        self, pipeline: "sigma.processing.pipeline.ProcessingPipeline", rule: SigmaRule, query: Union[str, dict]
+    ) -> Union[str, dict]:
+
+        if isinstance(query, dict):
+            output_type = 'json'
+            query = json.dumps(query)
+        else:
+            output_type = 'default'
+
         self.identifier = 'replace_integrity_thing'
         field_name = 'action_process_integrity_level'
 
@@ -63,6 +67,9 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
 
             replacement_string = '(' + ' or '.join(replacement_values) + ')'
             query = query.replace(target_string, replacement_string)
+
+        if output_type == 'json':
+            query = json.loads(query)
 
         return query, True
 
