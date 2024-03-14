@@ -136,8 +136,7 @@ class CortexXDRBackend(TextQueryBackend):
         """
         index_type, index = state.processing_state.get('dataset_preset', 'dataset::xdr_dataset').split('::')
 
-        full_query = f'{index_type}={index}'
-        full_query += f' | filter {query}'
+        full_query = f'{index_type}={index} | filter {query}'
         full_query += f' | fields {",".join(rule.fields)}' if rule.fields else ''
 
         return full_query
@@ -146,8 +145,9 @@ class CortexXDRBackend(TextQueryBackend):
         return queries
     
     def finalize_query_json(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> Any:
-        query_dataset = 'xdr_data'
-        full_query = f'dataset={query_dataset} | filter {query}'
+        index_type, index = state.processing_state.get('dataset_preset', 'dataset::xdr_dataset').split('::')
+
+        full_query = f'{index_type}={index} | filter {query}'
         full_query += f' | fields {",".join(rule.fields)}' if rule.fields else ''
 
         return {"query":full_query, "title":rule.title, "id":rule.id, "description": rule.description}
