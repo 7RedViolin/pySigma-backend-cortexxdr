@@ -1,6 +1,6 @@
 from typing import Union
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
-from sigma.processing.transformations import ConditionTransformation, AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation
+from sigma.processing.transformations import ConditionTransformation, AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation, SetStateTransformation
 from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
 from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
 from sigma.processing.postprocessing import QueryPostprocessingTransformation
@@ -76,203 +76,192 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
 
 def CortexXDR_pipeline() -> ProcessingPipeline:
 
-    translation_dict = {
+    logsource_category_to_event_type = {
         'process_creation':{
-            "ProcessId":"action_process_os_pid",
-            "Image":"action_process_image_path",
-            "Product":"action_process_signature_product",
-            "Company":"action_process_signature_vendor",
-            "CommandLine":"action_process_image_command_line",
-            "CurrentDirectory":"action_process_cwd",
-            "User":"action_process_username",
-            "IntegrityLevel":"action_process_integrity_level",
-            "md5":"action_process_image_md5",
-            "sha256":"action_process_image_sha256",
-            "ParentProcessId":"actor_process_os_pid",
-            "ParentImage":"actor_process_image_path",
-            "ParentCommandLine":"actor_process_image_command_line",
+            "event_type": "ENUM.PROCESS",
+            "event_sub_type": "ENUM.PROCESS_START"
         },
-        'file_activity':{
-            'Image': 'actor_process_image_path',
-            'CommandLine': 'actor_process_image_command_line',
-            'ParentImage': 'causality_actor_process_image_path',
-            'ParentCommandLine': 'causality_actor_process_command_line',
-            'TargetFilename': 'action_file_name',
-            'SourceFilename': 'action_file_previous_file_name'
+        "file_change": {
+            "event_type":"ENUM.FILE"
+        },
+        "file_rename": {
+            "event_type":"ENUM.FILE"
+        },
+        "file_delete": {
+            "event_type":"ENUM.FILE"
+        },
+        "file_event":{
+            "event_type":"ENUM.FILE"
         },
         'image_load':{
-            'Image': 'actor_process_image_path',
-            'CommandLine': 'actor_process_image_command_line',
-            'ParentImage': 'causality_actor_process_image_path',
-            'ParentCommandLine': 'causality_actor_process_command_line',
-            'ImageLoaded': 'action_module_path',
-            'md5': 'action_module_md5',
-            'sha256': 'action_module_sha256',
+            "event_type":"ENUM.LOAD_IMAGE"
         },
-        "registry":{
-            'Image': 'actor_process_image_path',
-            'CommandLine': 'actor_process_image_command_line',
-            'ParentImage': 'causality_actor_process_image_path',
-            'ParentCommandLine': 'causality_actor_process_command_line',
-            'TargetObject': 'action_registry_key_name',
-            'Details': ['action_registry_value_name', 'action_registry_data']
+        "registry_add":{
+            "event_type":"ENUM.REGISTRY"
         },
-        'network':{
-            'Image': 'actor_process_image_path',
-            'CommandLine': 'actor_process_image_command_line',
-            'ParentImage': 'causality_actor_process_image_path',
-            'ParentCommandLine': 'causality_actor_process_command_line',
-            'DestinationPort': ['action_local_port', 'action_remote_port'],
-            'DestinationIp': ['action_local_ip', 'action_remote_ip'],
-            'User': 'action_username',
-            'SourcePort': ['action_local_port', 'action_remote_port'],
-            'SourceIp': ['action_local_ip', 'action_remote_ip'],
-            'Protocol': 'action_network_protocol',
-            'dst_ip': ['action_local_ip', 'action_remote_ip'],
-            'dst_port': ['action_local_port', 'action_remote_port'],
-            'src_ip': ['action_local_ip', 'action_remote_ip'],
-            'src_port': ['action_local_port', 'action_remote_port'],
+        "registry_delete":{
+            "event_type":"ENUM.REGISTRY"
+        },
+        "registry_event":{
+            "event_type":"ENUM.REGISTRY"
+        },
+        "registry_set":{
+            "event_type":"ENUM.REGISTRY"
+        },
+        "network_connection": {
+            "event_type":"ENUM.NETWORK"
+        },
+        "firewall":{
+            "event_type":"ENUM.NETWORK"
         }
     }
 
+    translation_dict = {
+        'process':{
+            'index': {
+                'name': 'xdr_process',
+                'type': 'preset'
+            },
+            'category': ['process_creation'],
+            'fields':{
+                "ProcessId":"action_process_os_pid",
+                "Image":"action_process_image_path",
+                "Product":"action_process_signature_product",
+                "Company":"action_process_signature_vendor",
+                "CommandLine":"action_process_image_command_line",
+                "CurrentDirectory":"action_process_cwd",
+                "User":"action_process_username",
+                "IntegrityLevel":"action_process_integrity_level",
+                "md5":"action_process_image_md5",
+                "sha256":"action_process_image_sha256",
+                "ParentProcessId":"actor_process_os_pid",
+                "ParentImage":"actor_process_image_path",
+                "ParentCommandLine":"actor_process_image_command_line"
+            }
+        },
+        'file':{
+            'index': {
+                'name': 'xdr_file',
+                'type': 'preset'
+            },
+            'category': ['file_change','file_rename','file_delete','file_event'],
+            'fields':{
+                'Image': 'actor_process_image_path',
+                'CommandLine': 'actor_process_image_command_line',
+                'ParentImage': 'causality_actor_process_image_path',
+                'ParentCommandLine': 'causality_actor_process_command_line',
+                'TargetFilename': 'action_file_name',
+                'SourceFilename': 'action_file_previous_file_name'
+            }
+        },
+        'image_load':{
+            'index': {
+                'name': 'xdr_data',
+                'type': 'dataset'
+            },
+            'category': ['image_load'],
+            'fields':{
+                'Image': 'actor_process_image_path',
+                'CommandLine': 'actor_process_image_command_line',
+                'ParentImage': 'causality_actor_process_image_path',
+                'ParentCommandLine': 'causality_actor_process_command_line',
+                'ImageLoaded': 'action_module_path',
+                'md5': 'action_module_md5',
+                'sha256': 'action_module_sha256'
+            }
+        },
+        "registry":{
+            'index': {
+                'name': 'xdr_registry',
+                'type': 'preset'
+            },
+            'category': ['registry_add', 'registry_delete', 'registry_event', 'registry_set'],
+            'fields': {
+                'Image': 'actor_process_image_path',
+                'CommandLine': 'actor_process_image_command_line',
+                'ParentImage': 'causality_actor_process_image_path',
+                'ParentCommandLine': 'causality_actor_process_command_line',
+                'TargetObject': 'action_registry_key_name',
+                'Details': ['action_registry_value_name', 'action_registry_data']
+            }
+        },
+        'network':{
+            'index': {
+                'name': 'network_story',
+                'type': 'preset'
+            },
+            'category': ['network_connection','firewall'],
+            'fields': {
+                'Image': 'actor_process_image_path',
+                'CommandLine': 'actor_process_image_command_line',
+                'ParentImage': 'causality_actor_process_image_path',
+                'ParentCommandLine': 'causality_actor_process_command_line',
+                'DestinationPort': ['action_local_port', 'action_remote_port'],
+                'DestinationIp': ['action_local_ip', 'action_remote_ip'],
+                'User': 'action_username',
+                'SourcePort': ['action_local_port', 'action_remote_port'],
+                'SourceIp': ['action_local_ip', 'action_remote_ip'],
+                'Protocol': 'action_network_protocol',
+                'dst_ip': ['action_local_ip', 'action_remote_ip'],
+                'dst_port': ['action_local_port', 'action_remote_port'],
+                'src_ip': ['action_local_ip', 'action_remote_ip'],
+                'src_port': ['action_local_port', 'action_remote_port']
+            }
+        }
+    }
+
+    os_translation_dict = {
+        'windows':{ 'agent_os_type': 'ENUM.AGENT_OS_WINDOWS' },
+        'linux':{ 'agent_os_type': 'ENUM.AGENT_OS_LINUX' },
+        'macos':{ 'agent_os_type': 'ENUM.AGENT_OS_MAC' }
+    }
+
     os_filter = [
-        # Windows
         ProcessingItem(
-            identifier="cortexxdr_windows_os",
-            transformation=AddConditionTransformation({
-                "agent_os_type": "ENUM.AGENT_OS_WINDOWS"
-            }),
+            identifier=f"cortexxdr_{os_name}_os",
+            transformation=AddConditionTransformation(translation_value),
             rule_conditions=[
-                LogsourceCondition(product="windows")
-            ]
-        ),
-        # Linux
-        ProcessingItem(
-            identifier="cortexxdr_linux_os",
-            transformation=AddConditionTransformation({
-                "agent_os_type": "ENUM.AGENT_OS_LINUX"
-            }),
-            rule_conditions=[
-                LogsourceCondition(product="linux")
-            ]
-        ),
-        # macOS
-        ProcessingItem(
-            identifier="cortexxdr_macos_os",
-            transformation=AddConditionTransformation({
-                "agent_os_type": "ENUM.AGENT_OS_MAC"
-            }),
-            rule_conditions=[
-                LogsourceCondition(product="macos")
+                LogsourceCondition(product=os_name)
             ]
         )
+        for os_name, translation_value in os_translation_dict.items()
     ]
 
     event_type_filters = [
         ProcessingItem(
-            identifier="cortex_process_creation_eventtype",
-            transformation=AddConditionTransformation({
-                "event_type": "ENUM.PROCESS",
-                "event_sub_type": "ENUM.PROCESS_START"
-            }),
+            identifier=f"cortex_{event_type}_eventtype",
+            transformation=AddConditionTransformation(translation_value),
             rule_conditions = [
-                LogsourceCondition(category="process_creation")
-            ]
-        ),
-        ProcessingItem(
-            identifier="cortex_file_activity_eventtype",
-            transformation=AddConditionTransformation({
-                "event_type":"ENUM.FILE"
-            }),
-            rule_condition_linking=any,
-            rule_conditions=[
-                LogsourceCondition(category="file_change"),
-                LogsourceCondition(category="file_rename"),
-                LogsourceCondition(category="file_delete"),
-                LogsourceCondition(category="file_event")
-            ]
-        ),
-        ProcessingItem(
-            identifier="cortex_image_load_eventtype",
-            transformation=AddConditionTransformation({
-                "event_type":"ENUM.LOAD_IMAGE"
-            }),
-            rule_conditions=[
-                LogsourceCondition(category="image_load")
-            ]
-        ),
-        ProcessingItem(
-            identifier="cortex_registry_eventtype",
-            transformation=AddConditionTransformation({
-                "event_type":"ENUM.REGISTRY"
-            }),
-            rule_condition_linking=any,
-            rule_conditions=[
-                LogsourceCondition(category="registry_add"),
-                LogsourceCondition(category="registry_delete"),
-                LogsourceCondition(category="registry_event"),
-                LogsourceCondition(category="registry_set")
-            ]
-        ),
-        ProcessingItem(
-            identifier="cortex_network_eventtype",
-            transformation=AddConditionTransformation({
-                "event_type":"ENUM.NETWORK"
-            }),
-            rule_condition_linking=any,
-            rule_conditions=[
-                LogsourceCondition(category="network_connection"),
-                LogsourceCondition(category="firewall")
+                LogsourceCondition(category=event_type)
             ]
         )
+        for event_type, translation_value in logsource_category_to_event_type.items()
+    ]
+
+    dataset_preset_configuration = [
+        ProcessingItem(
+            identifier=f"cortex_dataset_preset_{activity_type}_config",
+            transformation=SetStateTransformation('dataset_preset', details['index']['type'] + '::' + details['index']['name']),
+            rule_conditions=[
+                LogsourceCondition(category=category)
+                for category in details['category']
+            ],
+            rule_condition_linking=any
+        )
+        for activity_type, details in translation_dict.items()
     ]
 
     field_mappings = [
         ProcessingItem(
-            identifier="cortex_process_creation_fieldmapping",
-            transformation=FieldMappingTransformation(translation_dict['process_creation']),
+            identifier=f"cortex_{activity_type}_fieldmapping",
+            transformation=FieldMappingTransformation(details['fields']),
             rule_conditions=[
-                LogsourceCondition(category="process_creation")
-            ]
-        ),
-        ProcessingItem(
-            identifier="cortex_file_activity_fieldmapping",
-            transformation=FieldMappingTransformation(translation_dict['file_activity']),
-            rule_condition_linking=any,
-            rule_conditions=[
-                LogsourceCondition(category="file_change"),
-                LogsourceCondition(category="file_rename"),
-                LogsourceCondition(category="file_delete"),
-                LogsourceCondition(category="file_event")
-            ]
-        ),
-        ProcessingItem(
-            identifier="cortex_image_load_fieldmapping",
-            transformation=FieldMappingTransformation(translation_dict['image_load']),
-            rule_conditions=[
-                LogsourceCondition(category="image_load")
-            ]
-        ),
-        ProcessingItem(
-            identifier="cortex_registry_fieldmapping",
-            transformation=FieldMappingTransformation(translation_dict['registry']),
-            rule_condition_linking=any,
-            rule_conditions=[
-                LogsourceCondition(category="registry_add"),
-                LogsourceCondition(category="registry_delete"),
-                LogsourceCondition(category="registry_event"),
-                LogsourceCondition(category="registry_set")
-            ]
-        ),
-        ProcessingItem(
-            identifier="cortex_network_fieldmapping",
-            transformation=FieldMappingTransformation(translation_dict['network']),
-            rule_condition_linking=any,
-            rule_conditions=[
-                LogsourceCondition(category="network_connection"),
-                LogsourceCondition(category="firewall")
-            ]
+                LogsourceCondition(category=category)
+                for category in details['category']
+            ],
+            rule_condition_linking=any
         )
+        for activity_type, details in translation_dict.items()
     ]
 
     change_logsource_info = [
@@ -284,18 +273,8 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             ),
             rule_condition_linking=any,
             rule_conditions=[
-                LogsourceCondition(category="process_creation"),
-                LogsourceCondition(category="file_change"),
-                LogsourceCondition(category="file_rename"),
-                LogsourceCondition(category="file_delete"),
-                LogsourceCondition(category="file_event"),
-                LogsourceCondition(category="image_load"),
-                LogsourceCondition(category="registry_add"),
-                LogsourceCondition(category="registry_delete"),
-                LogsourceCondition(category="registry_event"),
-                LogsourceCondition(category="registry_set"),
-                LogsourceCondition(category="network_connection"),
-                LogsourceCondition(category="firewall")
+                LogsourceCondition(category=category)
+                for category in logsource_category_to_event_type.keys()
             ]
         ),
     ]
@@ -317,9 +296,9 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
         ProcessingItem(
             identifier='cortex_fail_field_not_supported',
             transformation=InvalidFieldTransformation("This pipeline only supports the following fields:\n{" + 
-            '}, {'.join(sorted(set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[])))) + '}'),
+            '}, {'.join(sorted(set(sum([list(translation_dict[x]['fields'].keys()) for x in translation_dict.keys()],[])))) + '}'),
             field_name_conditions=[
-                ExcludeFieldCondition(fields=list(set(sum([list(translation_dict[x].keys()) for x in translation_dict.keys()],[]))))
+                ExcludeFieldCondition(fields=list(set(sum([list(translation_dict[x]['fields'].keys()) for x in translation_dict.keys()],[]))))
             ]
         )
     ]
@@ -329,6 +308,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
         priority=50,
         items = [
             *unsupported_field_name,
+            *dataset_preset_configuration,
             *os_filter, 
             *event_type_filters,
             *field_mappings,
