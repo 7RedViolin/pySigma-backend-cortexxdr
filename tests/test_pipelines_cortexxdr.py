@@ -19,7 +19,7 @@ def test_cortexxdr_windows_os_filter(cortexxdr_backend : CortexXDRBackend):
                     Image: valueA
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and action_process_image_path = "valueA")']
+    ) == ['preset=xdr_process | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and action_process_image_path = "valueA")']
 
 def test_cortexxdr_linux_os_filter(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -34,7 +34,7 @@ def test_cortexxdr_linux_os_filter(cortexxdr_backend : CortexXDRBackend):
                     Image: valueA
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_LINUX and action_process_image_path = "valueA")']
+    ) == ['preset=xdr_process | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_LINUX and action_process_image_path = "valueA")']
 
 def test_cortexxdr_osx_os_filter(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -49,7 +49,7 @@ def test_cortexxdr_osx_os_filter(cortexxdr_backend : CortexXDRBackend):
                     Image: valueA
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_MAC and action_process_image_path = "valueA")']
+    ) == ['preset=xdr_process | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_MAC and action_process_image_path = "valueA")']
 
 def test_cortexxdr_integrity_levels_filter_single(cortexxdr_backend: CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -64,7 +64,7 @@ def test_cortexxdr_integrity_levels_filter_single(cortexxdr_backend: CortexXDRBa
                     IntegrityLevel: LOW
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and (action_process_integrity_level gte 4096 and action_process_integrity_level lt 8192))']
+    ) == ['preset=xdr_process | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and (action_process_integrity_level gte 4096 and action_process_integrity_level lt 8192))']
 
 def test_cortexxdr_integrity_levels_filter_multiple(cortexxdr_backend: CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -81,8 +81,7 @@ def test_cortexxdr_integrity_levels_filter_multiple(cortexxdr_backend: CortexXDR
                     - HIGH
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and (((action_process_integrity_level gte 4096 and action_process_integrity_level lt 8192) or (action_process_integrity_level gte 12288 and action_process_integrity_level lt 16384))))']
-
+    ) == ['preset=xdr_process | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and (((action_process_integrity_level gte 4096 and action_process_integrity_level lt 8192) or (action_process_integrity_level gte 12288 and action_process_integrity_level lt 16384))))']
 
 def test_cortexxdr_process_creation_mapping(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -109,7 +108,7 @@ def test_cortexxdr_process_creation_mapping(cortexxdr_backend : CortexXDRBackend
                     ParentCommandLine: Get-Path
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_os_pid = 12 and ' + 
+    ) == ['preset=xdr_process | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_os_pid = 12 and ' + 
           'action_process_image_path = "valueA" and action_process_signature_product = "bar foo" and action_process_signature_vendor = "foo foo" and ' + 
           'action_process_image_command_line = "invoke-mimikatz" and action_process_cwd = "/etc" and action_process_username = "administrator" and ' + 
           'action_process_integrity_level = "bar bar" and action_process_image_md5 = "asdfasdfasdfasdfasdf" and ' + 
@@ -134,7 +133,7 @@ def test_cortexxdr_file_mapping(cortexxdr_backend : CortexXDRBackend):
                     SourceFilename: bar foo
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter event_type = ENUM.FILE and (actor_process_image_path = "valueA" and ' + 
+    ) == ['preset=xdr_file | filter event_type = ENUM.FILE and (actor_process_image_path = "valueA" and ' + 
           'actor_process_image_command_line = "invoke-mimikatz" and causality_actor_process_image_path = "valueB" and ' + 
           'causality_actor_process_command_line = "Get-Path" and action_file_name = "foo bar" and action_file_previous_file_name = "bar foo")']
 
@@ -180,7 +179,7 @@ def test_cortexxdr_registry_mapping(cortexxdr_backend : CortexXDRBackend):
                     Details: bar foo
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter event_type = ENUM.REGISTRY and (actor_process_image_path = "valueA" and ' + 
+    ) == ['preset=xdr_registry | filter event_type = ENUM.REGISTRY and (actor_process_image_path = "valueA" and ' + 
           'actor_process_image_command_line = "invoke-mimikatz" and causality_actor_process_image_path = "valueB" and ' + 
           'causality_actor_process_command_line = "Get-Path" and action_registry_key_name = "foo bar" and ' + 
           '(action_registry_value_name = "bar foo" or action_registry_data = "bar foo"))']
@@ -211,7 +210,7 @@ def test_cortexxdr_network_mapping(cortexxdr_backend : CortexXDRBackend):
                     src_port: 8080
                 condition: sel
         """)
-    ) == ['dataset=xdr_data | filter event_type = ENUM.NETWORK and (actor_process_image_path = "valueA" and ' + 
+    ) == ['preset=network_story | filter event_type = ENUM.NETWORK and (actor_process_image_path = "valueA" and ' + 
           'actor_process_image_command_line = "invoke-mimikatz" and causality_actor_process_image_path = "valueB" and ' + 
           'causality_actor_process_command_line = "Get-Path" and (action_local_port = 445 or action_remote_port = 445) and ' +
           '(action_local_ip = "0.0.0.0" or action_remote_ip = "0.0.0.0") and action_username = "administrator" and ' + 
