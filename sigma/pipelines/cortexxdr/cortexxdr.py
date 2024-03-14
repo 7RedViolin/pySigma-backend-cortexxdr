@@ -258,7 +258,8 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             rule_conditions=[
                 LogsourceCondition(category=category)
                 for category in details['category']
-            ]
+            ],
+            rule_condition_linking=any
         )
         for activity_type, details in translation_dict.items()
     ]
