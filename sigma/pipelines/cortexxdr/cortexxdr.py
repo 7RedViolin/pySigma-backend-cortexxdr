@@ -85,10 +85,12 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             "event_type":"ENUM.FILE"
         },
         "file_rename": {
-            "event_type":"ENUM.FILE"
+            "event_type":"ENUM.FILE",
+            'event_sub_type': 'ENUM.FILE_RENAME'
         },
         "file_delete": {
-            "event_type":"ENUM.FILE"
+            "event_type":"ENUM.FILE",
+            'event_sub_type': 'ENUM.FILE_REMOVE'
         },
         "file_event":{
             "event_type":"ENUM.FILE"
@@ -97,16 +99,19 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             "event_type":"ENUM.LOAD_IMAGE"
         },
         "registry_add":{
-            "event_type":"ENUM.REGISTRY"
+            "event_type":"ENUM.REGISTRY",
+            'event_sub_type': 'ENUM.REGISTRY_CREATE_KEY'
         },
         "registry_delete":{
-            "event_type":"ENUM.REGISTRY"
+            "event_type":"ENUM.REGISTRY",
+            'event_sub_type': ['ENUM.REGISTRY_DELETE_KEY', 'ENUM.REGISTRY_DELETE_VALUE']
         },
         "registry_event":{
             "event_type":"ENUM.REGISTRY"
         },
         "registry_set":{
-            "event_type":"ENUM.REGISTRY"
+            "event_type":"ENUM.REGISTRY",
+            'event_sub_type': 'ENUM.REGISTRY_SET_VALUE'
         },
         "network_connection": {
             "event_type":"ENUM.NETWORK"
@@ -114,6 +119,32 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
         "firewall":{
             "event_type":"ENUM.NETWORK"
         }
+    }
+
+    generic_translation_dict = {
+        'User': 'actor_effective_username',
+        'CommandLine': 'actor_process_image_command_line',
+        'Image': 'actor_process_image_path',
+        "LogonId": "actor_process_logon_id",
+        "Product": "actor_process_signature_product",
+        "Company": "actor_process_signature_vendor",
+        "IntegrityLevel": "actor_process_integrity_level",
+        'CurrentDirectory': 'actor_process_cwd',
+        'ProcessId': 'actor_process_os_id',
+        'ParentProcessId': 'causality_actor_process_os_id',
+        'ParentCommandLine': 'causality_actor_process_command_line',
+        'ParentImage': 'causality_actor_process_image_path',
+        "ParentUser": "causality_actor_effective_username",
+        'ParentIntegrityLevel': 'causality_actor_process_integrity_level',
+        'ParentLogonId': 'causality_actor_process_logon_id',
+        'ParentProduct': 'causality_actor_process_signature_product',
+        'ParentCompany': 'causality_actor_process_signature_vendor'
+        #'ProcessGuid': ?,
+        #'ParentProcessGuid': ?,
+        #'FileVersion': ?,
+        #'Description': ?,
+        #'OriginalFileName': ?,
+        #'EventType': ?,
     }
 
     translation_dict = {
@@ -124,19 +155,35 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             },
             'category': ['process_creation'],
             'fields':{
-                "ProcessId":"action_process_os_pid",
+                "User":"action_process_username",
+                "CommandLine":"action_process_image_command_line",
                 "Image":"action_process_image_path",
+                "LogonId": "action_process_logon_id",
                 "Product":"action_process_signature_product",
                 "Company":"action_process_signature_vendor",
-                "CommandLine":"action_process_image_command_line",
-                "CurrentDirectory":"action_process_cwd",
-                "User":"action_process_username",
                 "IntegrityLevel":"action_process_integrity_level",
+                "CurrentDirectory":"action_process_cwd",
+                "ProcessId":"action_process_os_pid",
+                "ParentProcessId":"actor_process_os_pid",
+                "ParentCommandLine":"actor_process_image_command_line",
+                "ParentImage":"actor_process_image_path",
+                "ParentUser": "actor_effective_username",
+                'ParentIntegrityLevel': 'actor_process_integrity_level',
+                'ParentLogonId': 'actor_process_logon_id',
+                'ParentProduct': 'actor_process_signature_product',
+                'ParentCompany': 'actor_process_signature_vendor',
                 "md5":"action_process_image_md5",
                 "sha256":"action_process_image_sha256",
-                "ParentProcessId":"actor_process_os_pid",
-                "ParentImage":"actor_process_image_path",
-                "ParentCommandLine":"actor_process_image_command_line"
+                #"ProcessGuid": ?,
+                #'ParentProcessGuid': ?,
+                #"FileVersion": ?,
+                #"Description": ?,
+                #"OriginalFileName": ?,
+                #"Hashes": ?,
+                #'EventType': ?,
+                #"LogonGuid": ?,
+                #"TerminalSessionId": ?,
+                #"sha1": ?,
             }
         },
         'file':{
@@ -146,28 +193,31 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             },
             'category': ['file_change','file_rename','file_delete','file_event'],
             'fields':{
-                'Image': 'actor_process_image_path',
-                'CommandLine': 'actor_process_image_command_line',
-                'ParentImage': 'causality_actor_process_image_path',
-                'ParentCommandLine': 'causality_actor_process_command_line',
+                **generic_translation_dict,
                 'TargetFilename': 'action_file_name',
-                'SourceFilename': 'action_file_previous_file_name'
+                'SourceFilename': 'action_file_previous_file_name',
+                #'sha1': ?,
+                #'sha256': ?,
+                #'md5': ?,
+                #'Hashes': ?,
+                #'CreationUtcTime': ?
             }
         },
         'image_load':{
             'index': {
-                'name': 'xdr_data',
-                'type': 'dataset'
+                'name': 'xdr_image_load',
+                'type': 'preset'
             },
             'category': ['image_load'],
             'fields':{
-                'Image': 'actor_process_image_path',
-                'CommandLine': 'actor_process_image_command_line',
-                'ParentImage': 'causality_actor_process_image_path',
-                'ParentCommandLine': 'causality_actor_process_command_line',
+                **generic_translation_dict,
                 'ImageLoaded': 'action_module_path',
                 'md5': 'action_module_md5',
-                'sha256': 'action_module_sha256'
+                'sha256': 'action_module_sha256',
+                #'sha1': ?,
+                #'Signed': ?,
+                #'Signature': ?,
+                #'SignatureStatus': ?
             }
         },
         "registry":{
@@ -177,35 +227,37 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             },
             'category': ['registry_add', 'registry_delete', 'registry_event', 'registry_set'],
             'fields': {
-                'Image': 'actor_process_image_path',
-                'CommandLine': 'actor_process_image_command_line',
-                'ParentImage': 'causality_actor_process_image_path',
-                'ParentCommandLine': 'causality_actor_process_command_line',
+                **generic_translation_dict,
                 'TargetObject': 'action_registry_key_name',
-                'Details': ['action_registry_value_name', 'action_registry_data']
+                'Details': ['action_registry_value_name', 'action_registry_data'],
+                #'NewName': ?,
             }
         },
         'network':{
             'index': {
-                'name': 'network_story',
+                'name': 'network_story', # or xdr_agent_network - not sure the difference
                 'type': 'preset'
             },
             'category': ['network_connection','firewall'],
             'fields': {
-                'Image': 'actor_process_image_path',
-                'CommandLine': 'actor_process_image_command_line',
-                'ParentImage': 'causality_actor_process_image_path',
-                'ParentCommandLine': 'causality_actor_process_command_line',
+                **generic_translation_dict,
+                # Have to have local/remote like this because direction isn't defined that I can tell
                 'DestinationPort': ['action_local_port', 'action_remote_port'],
                 'DestinationIp': ['action_local_ip', 'action_remote_ip'],
-                'User': 'action_username',
                 'SourcePort': ['action_local_port', 'action_remote_port'],
                 'SourceIp': ['action_local_ip', 'action_remote_ip'],
                 'Protocol': 'action_network_protocol',
                 'dst_ip': ['action_local_ip', 'action_remote_ip'],
                 'dst_port': ['action_local_port', 'action_remote_port'],
                 'src_ip': ['action_local_ip', 'action_remote_ip'],
-                'src_port': ['action_local_port', 'action_remote_port']
+                'src_port': ['action_local_port', 'action_remote_port'],
+                'DestinationHostname': 'action_external_hostname',
+                'SourceHostname': 'agent_hostname',
+                #'Initiated': ?,
+                #'SourceIsIpv6': ?,
+                #'SourcePortName': ?,
+                #'DestinationIsIpv6': ?,
+                #'DestinationPortName': ?
             }
         }
     }
@@ -291,23 +343,29 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             ]
         )
     ]
-
-    unsupported_field_name = [
+    
+    unsupported_field_name_by_category = [
         ProcessingItem(
-            identifier='cortex_fail_field_not_supported',
-            transformation=InvalidFieldTransformation("This pipeline only supports the following fields:\n{" + 
-            '}, {'.join(sorted(set(sum([list(translation_dict[x]['fields'].keys()) for x in translation_dict.keys()],[])))) + '}'),
+            identifier=f'cortex_fail_field_not_supported_{activity_type}',
+            transformation=InvalidFieldTransformation("This pipeline only supports the following fields for " + activity_type + " activity:\n{" + 
+            '}, {'.join(details['fields'].keys()) + '}'),
             field_name_conditions=[
-                ExcludeFieldCondition(fields=list(set(sum([list(translation_dict[x]['fields'].keys()) for x in translation_dict.keys()],[]))))
-            ]
+                ExcludeFieldCondition(fields=details['fields'].keys())
+            ],
+            rule_conditions=[
+                LogsourceCondition(category=category)
+                for category in details['category']
+            ],
+            rule_condition_linking=any
         )
+        for activity_type, details in translation_dict.items()
     ]
 
     return ProcessingPipeline(
         name="CortexXDR pipeline",
         priority=50,
         items = [
-            *unsupported_field_name,
+            *unsupported_field_name_by_category,
             *dataset_preset_configuration,
             *os_filter, 
             *event_type_filters,

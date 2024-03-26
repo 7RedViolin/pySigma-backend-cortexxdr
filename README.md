@@ -76,4 +76,37 @@ print(backend.convert_rule(rule)[0])
   - `registry_set`
   - `network_connection`
   - `firewall`
+- Pipeline supports the following fields:
+  - `CommandLine`
+  - `Company`
+  - `CurrentDirectory`
+  - `DestinationHostname`
+  - `DestinationIp`
+  - `DestinationPort`
+  - `Details`
+  - `Image`
+  - `ImageLoaded`
+  - `IntegrityLevel`
+  - `ParentCommandLine`
+  - `ParentImage`
+  - `ParentIntegrityLevel`
+  - `ParentProcessId`
+  - `ParentUser`
+  - `ProcessId`
+  - `Product`
+  - `Protocol`
+  - `SourceFilename`
+  - `SourceHostname`
+  - `SourceImage`
+  - `SourceIp`
+  - `SourcePort`
+  - `TargetFilename`
+  - `TargetObject`
+  - `User`
+  - `dst_ip`
+  - `dst_port`
+  - `md5`
+  - `sha256`
+  - `src_ip`
+  - `src_port`
 - Any unsupported fields or categories will throw errors
