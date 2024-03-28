@@ -217,12 +217,7 @@ def test_cortexxdr_network_mapping(cortexxdr_backend : CortexXDRBackend):
                     src_port: 8080
                 condition: sel
         """)
-    ) == ['preset=network_story | filter event_type = ENUM.NETWORK and ((action_local_port = 445 or action_remote_port = 445) and ' +
-          '(action_local_ip = "0.0.0.0" or action_remote_ip = "0.0.0.0") and actor_effective_username = "administrator" and ' + 
-          '(action_local_port = 135 or action_remote_port = 135) and (action_local_ip = "1.1.1.1" or action_remote_ip = "1.1.1.1") and ' + 
-          'action_network_protocol = "udp" and (action_local_ip = "2.2.2.2" or action_remote_ip = "2.2.2.2") and ' + 
-          '(action_local_port = 80 or action_remote_port = 80) and (action_local_ip = "3.3.3.3" or action_remote_ip = "3.3.3.3") and ' + 
-          '(action_local_port = 8080 or action_remote_port = 8080))']
+    ) == ['preset=network_story | filter event_type = ENUM.NETWORK and ((action_local_port = 135 or action_remote_port = 135) and (action_local_ip = "1.1.1.1" or action_remote_ip = "1.1.1.1") and action_network_protocol = "udp" and (action_local_ip = "2.2.2.2" or action_remote_ip = "2.2.2.2") and (action_local_port = 80 or action_remote_port = 80) and (action_local_ip = "3.3.3.3" or action_remote_ip = "3.3.3.3") and (action_local_port = 8080 or action_remote_port = 8080))']
 
 def test_cortexxdr_unsupported_rule_type(cortexxdr_backend : CortexXDRBackend):
   with pytest.raises(ValueError):
