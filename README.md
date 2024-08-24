@@ -5,7 +5,7 @@
 # pySigma CortexXDR Backend
 
 This is the CortexXDR backend for pySigma. It provides the package `sigma.backends.cortexxdr` with the `CortexXDRBackend` class.
-Further, it contains the following processing pipelines in `sigma.pipelines.cortexxdr` for field renames and error handling. This pipeline is automatically applied to `SigmaRule` and `SigmaCollection` objects passed to the SentinelOneBackend class.
+Further, it contains the following processing pipelines in `sigma.pipelines.cortexxdr` for field renames and error handling. This pipeline is automatically applied to `SigmaRule` and `SigmaCollection` objects passed to the CortexXDR class.
 
 It supports the following output formats:
 
