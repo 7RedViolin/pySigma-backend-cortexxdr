@@ -2,7 +2,7 @@ from typing import Union
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
 from sigma.processing.transformations import ConditionTransformation, AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation, SetStateTransformation
 from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
-from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
+from sigma.processing.pipeline import QueryPostprocessingItem, ProcessingItem, ProcessingPipeline
 from sigma.processing.postprocessing import QueryPostprocessingTransformation
 from sigma.rule import SigmaDetectionItem, SigmaDetection, SigmaRule
 from sigma.exceptions import SigmaTransformationError
@@ -71,7 +71,7 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
         if output_type == 'json':
             query = json.loads(query)
 
-        return query, True
+        return query
 
 
 def CortexXDR_pipeline() -> ProcessingPipeline:
@@ -374,6 +374,9 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             *unsupported_rule_types,
         ],
         postprocessing_items=[
-            ReplaceIntegrityLevelQueryTransformation(),
+            QueryPostprocessingItem(
+                identifier=f'replace_integrity_level',
+                transformation=ReplaceIntegrityLevelQueryTransformation(),
+            ),
         ],
     )
