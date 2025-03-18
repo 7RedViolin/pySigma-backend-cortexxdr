@@ -47,7 +47,7 @@ class CortexXDRBackend(TextQueryBackend):
     field_escape_pattern : ClassVar[Pattern] = re.compile("\\s")   # All matches of this pattern are prepended with the string contained in field_escape.
 
     ## Values
-    str_quote         : ClassVar[str] = '"'     # string quoting character (added as escaping character)
+    str_quote         : ClassVar[str] = '"""'     # string quoting character (added as escaping character)
     str_quote_pattern : ClassVar[Optional[Pattern]] = re.compile("^ENUM\.[A-Z_]{1,}$")      # Quote string values that match (or don't match) this pattern
     str_quote_pattern_negation : ClassVar[bool] = True  # Negate str_quote_pattern result
     escape_char       : ClassVar[str] = "\\"    # Escaping character for special characters inside string
