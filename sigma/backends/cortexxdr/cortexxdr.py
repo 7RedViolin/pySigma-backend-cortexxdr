@@ -53,7 +53,7 @@ class CortexXDRBackend(TextQueryBackend):
     escape_char       : ClassVar[str] = "\\"    # Escaping character for special characters inside string
     wildcard_multi    : ClassVar[str] = "*"     # Character used as multi-character wildcard
     wildcard_single   : ClassVar[str] = "*"     # Character used as single-character wildcard
-    add_escaped       : ClassVar[str] = "\\"    # Characters quoted in addition to wildcards and string quote
+    add_escaped       : ClassVar[str] = ""    # Characters quoted in addition to wildcards and string quote
     filter_chars      : ClassVar[str] = ""      # Characters filtered
     bool_values       : ClassVar[Dict[bool, str]] = {   # Values to which boolean values are mapped.
         True: "true",
@@ -73,7 +73,7 @@ class CortexXDRBackend(TextQueryBackend):
     re_expression : ClassVar[str] = "{field} ~= \"{regex}\""
     re_escape_char : ClassVar[str] = "\\"               # Character used for escaping in regular expressions
     re_escape : ClassVar[Tuple[str]] = ()               # List of strings that are escaped
-    re_escape_escape_char : bool = True                 # If True, the escape character is also escaped
+    re_escape_escape_char : bool = False                 # If True, the escape character is also escaped
     re_flag_prefix : bool = True                        # If True, the flags are prepended as (?x) group at the beginning of the regular expression, e.g. (?i). If this is not supported by the target, it should be set to False.
     # Mapping from SigmaRegularExpressionFlag values to static string templates that are used in
     # flag_x placeholders in re_expression template.
@@ -136,7 +136,7 @@ class CortexXDRBackend(TextQueryBackend):
         """
         index_type, index = state.processing_state.get('dataset_preset', 'dataset::xdr_dataset').split('::')
 
-        full_query = f'{index_type}={index} | filter {query}'
+        full_query = f'config case_sensitive = false | {index_type}={index} | filter {query}'
         full_query += f' | fields {",".join(rule.fields)}' if rule.fields else ''
 
         return full_query
@@ -147,7 +147,7 @@ class CortexXDRBackend(TextQueryBackend):
     def finalize_query_json(self, rule: SigmaRule, query: str, index: int, state: ConversionState) -> Any:
         index_type, index = state.processing_state.get('dataset_preset', 'dataset::xdr_dataset').split('::')
 
-        full_query = f'{index_type}={index} | filter {query}'
+        full_query = f'config case_sensitive = false | f{index_type}={index} | filter {query}'
         full_query += f' | fields {",".join(rule.fields)}' if rule.fields else ''
 
         return {"query":full_query, "title":rule.title, "id":rule.id, "description": rule.description}
