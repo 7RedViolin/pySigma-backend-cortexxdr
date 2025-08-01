@@ -29,9 +29,9 @@ class CortexXDRBackend(TextQueryBackend):
 
     # Generated query tokens
     token_separator : str = " "     # separator inserted between all boolean operators
-    or_token : ClassVar[str] = "or"
-    and_token : ClassVar[str] = "and"
-    not_token : ClassVar[str] = "not"
+    or_token : ClassVar[str] = "or \n"
+    and_token : ClassVar[str] = "and \n"
+    not_token : ClassVar[str] = "not \n"
     eq_token : ClassVar[str] = " = "  # Token inserted between field and value (without separator)
 
     # String output
