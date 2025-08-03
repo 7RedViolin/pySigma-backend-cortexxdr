@@ -145,7 +145,7 @@ def test_cortexxdr_process_creation_mapping(cortexxdr_backend : CortexXDRBackend
                     sha256: sha256sha256sha256
                 condition: sel
         """)
-    ) == ['preset=xdr_process | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_username = "admin," and action_process_image_command_line = "cmdline /field=value," and action_process_image_path = "cmd.exe," and action_process_logon_id = "logon_id_here," and action_process_signature_product = "Product Name," and action_process_signature_vendor = "Company Name," and action_process_integrity_level = "High," and action_process_cwd = "/current/working/directory," and action_process_os_pid = "1," and actor_process_os_pid = "2," and actor_process_image_command_line = "cmdline2 /field1=value1," and actor_process_image_path = "explorer.exe," and actor_effective_username = "guest," and actor_process_integrity_level = "Low," and actor_process_logon_id = "logon_id_here_parent," and actor_process_signature_product = "Parent Product Name," and actor_process_signature_vendor = "Parent Company Name," and action_process_image_md5 = "md5md5md5md5," and action_process_image_sha256 = "sha256sha256sha256")']
+    ) == ['preset=xdr_process | filter (event_type = ENUM.PROCESS and event_sub_type = ENUM.PROCESS_START) and (action_process_username = "admin," and action_process_image_command_line = "cmdline /field=value," and action_process_image_path = "cmd.exe," and action_process_logon_id = "logon_id_here," and action_process_signature_product = "Product Name," and action_process_signature_vendor = "Company Name," and action_process_integrity_level = "High," and action_process_cwd = "/current/working/directory," and action_process_os_pid = "1," and actor_process_os_pid = "2," and actor_process_command_line = "cmdline2 /field1=value1," and actor_process_image_path = "explorer.exe," and actor_effective_username = "guest," and actor_process_integrity_level = "Low," and actor_process_logon_id = "logon_id_here_parent," and actor_process_signature_product = "Parent Product Name," and actor_process_signature_vendor = "Parent Company Name," and action_process_image_md5 = "md5md5md5md5," and action_process_image_sha256 = "sha256sha256sha256")']
 
 def test_cortexxdr_file_mapping(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -161,7 +161,7 @@ def test_cortexxdr_file_mapping(cortexxdr_backend : CortexXDRBackend):
                     SourceFilename: bar foo
                 condition: sel
         """)
-    ) == ['preset=xdr_file | filter event_type = ENUM.FILE and (action_file_name = "foo bar" and action_file_previous_file_name = "bar foo")']
+    ) == ['preset=xdr_file | filter event_type = ENUM.FILE and (action_file_path = "foo bar" and action_file_previous_file_path = "bar foo")']
 
 def test_cortexxdr_image_load_mapping(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -217,7 +217,7 @@ def test_cortexxdr_network_mapping(cortexxdr_backend : CortexXDRBackend):
                     src_port: 8080
                 condition: sel
         """)
-    ) == ['preset=network_story | filter event_type = ENUM.NETWORK and ((action_local_port = 135 or action_remote_port = 135) and (action_local_ip = "1.1.1.1" or action_remote_ip = "1.1.1.1") and action_network_protocol = "udp" and (action_local_ip = "2.2.2.2" or action_remote_ip = "2.2.2.2") and (action_local_port = 80 or action_remote_port = 80) and (action_local_ip = "3.3.3.3" or action_remote_ip = "3.3.3.3") and (action_local_port = 8080 or action_remote_port = 8080))']
+    ) == ['preset=network_story | filter event_type = ENUM.NETWORK and (action_local_port = 135 and action_local_ip = "1.1.1.1" and action_network_protocol = "udp" and action_remote_ip = "2.2.2.2" and action_remote_port = 80 and action_local_ip = "3.3.3.3" and action_local_port = 8080)']
 
 def test_cortexxdr_unsupported_rule_type(cortexxdr_backend : CortexXDRBackend):
   with pytest.raises(ValueError):
