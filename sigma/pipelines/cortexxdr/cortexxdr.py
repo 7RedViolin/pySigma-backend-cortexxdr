@@ -1,6 +1,6 @@
 from typing import Union
 from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
-from sigma.processing.transformations import ConditionTransformation, AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation, SetStateTransformation
+from sigma.processing.transformations import AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation, SetStateTransformation
 from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
 from sigma.processing.pipeline import QueryPostprocessingItem, ProcessingItem, ProcessingPipeline
 from sigma.processing.postprocessing import QueryPostprocessingTransformation
