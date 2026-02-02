@@ -165,7 +165,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
                 "CurrentDirectory":"action_process_cwd",
                 "ProcessId":"action_process_os_pid",
                 "ParentProcessId":"actor_process_os_pid",
-                "ParentCommandLine":"actor_process_image_command_line",
+                "ParentCommandLine":"actor_process_command_line",
                 "ParentImage":"actor_process_image_path",
                 "ParentUser": "actor_effective_username",
                 'ParentIntegrityLevel': 'actor_process_integrity_level',
@@ -194,11 +194,11 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             'category': ['file_change','file_rename','file_delete','file_event'],
             'fields':{
                 **generic_translation_dict,
-                'TargetFilename': 'action_file_name',
-                'SourceFilename': 'action_file_previous_file_name',
+                'TargetFilename': 'action_file_path',
+                'SourceFilename': 'action_file_previous_file_path',
+                'sha256': 'action_file_sha256',
+                'md5': 'action_file_md5',
                 #'sha1': ?,
-                #'sha256': ?,
-                #'md5': ?,
                 #'Hashes': ?,
                 #'CreationUtcTime': ?
             }
@@ -235,25 +235,24 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
         },
         'network':{
             'index': {
-                'name': 'network_story', # or xdr_agent_network - not sure the difference
+                'name': 'network_story',
                 'type': 'preset'
             },
             'category': ['network_connection','firewall'],
             'fields': {
                 **generic_translation_dict,
-                # Have to have local/remote like this because direction isn't defined that I can tell
-                'DestinationPort': ['action_local_port', 'action_remote_port'],
-                'DestinationIp': ['action_local_ip', 'action_remote_ip'],
-                'SourcePort': ['action_local_port', 'action_remote_port'],
-                'SourceIp': ['action_local_ip', 'action_remote_ip'],
+                'DestinationPort': 'action_remote_port',
+                'DestinationIp': 'action_remote_ip',
+                'SourcePort': 'action_local_port',
+                'SourceIp': 'action_local_ip',
                 'Protocol': 'action_network_protocol',
-                'dst_ip': ['action_local_ip', 'action_remote_ip'],
-                'dst_port': ['action_local_port', 'action_remote_port'],
-                'src_ip': ['action_local_ip', 'action_remote_ip'],
-                'src_port': ['action_local_port', 'action_remote_port'],
+                'dst_ip': 'action_remote_ip',
+                'dst_port': 'action_remote_port',
+                'src_ip': 'action_local_ip',
+                'src_port': 'action_local_port',
                 'DestinationHostname': 'action_external_hostname',
                 'SourceHostname': 'agent_hostname',
-                #'Initiated': ?,
+                'Initiated': 'action_network_success',
                 #'SourceIsIpv6': ?,
                 #'SourcePortName': ?,
                 #'DestinationIsIpv6': ?,
