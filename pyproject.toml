@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pySigma-backend-cortexxdr"
-version = "0.1.4"
+version = "0.0.0"
 description = "pySigma CortexXDR backend"
 authors = ["Cori Smith <cs2718281@gmail.com>"]
 license = "MIT"
@@ -24,3 +24,13 @@ defusedxml = "^0.7"
 [build-system]
 requires = ["poetry-core>=1.8.1"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+metadata = false
+dirty = false
+
+[tool.poetry-dynamic-versioning.substitution]
+files = ["sigma/backends/cortexxdr/__init__.py"]
