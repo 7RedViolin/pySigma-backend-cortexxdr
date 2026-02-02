@@ -50,7 +50,7 @@ class CortexXDRBackend(TextQueryBackend):
     str_quote         : ClassVar[str] = '"'     # string quoting character (added as escaping character)
     str_quote_pattern : ClassVar[Optional[Pattern]] = re.compile("^ENUM\.[A-Z_]{1,}$")      # Quote string values that match (or don't match) this pattern
     str_quote_pattern_negation : ClassVar[bool] = True  # Negate str_quote_pattern result
-    escape_char       : ClassVar[str] = "\\"    # Escaping character for special characters inside string
+    #escape_char       : ClassVar[str] = "\\"    # Escaping character for special characters inside string
     wildcard_multi    : ClassVar[str] = "*"     # Character used as multi-character wildcard
     wildcard_single   : ClassVar[str] = "*"     # Character used as single-character wildcard
     add_escaped       : ClassVar[str] = "\\"    # Characters quoted in addition to wildcards and string quote
