@@ -123,7 +123,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
 
     generic_translation_dict = {
         'User': 'actor_effective_username',
-        'CommandLine': 'actor_process_image_command_line',
+        'CommandLine': 'actor_process_command_line',
         'Image': 'actor_process_image_path',
         "LogonId": "actor_process_logon_id",
         "Product": "actor_process_signature_product",
@@ -165,7 +165,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
                 "CurrentDirectory":"action_process_cwd",
                 "ProcessId":"action_process_os_pid",
                 "ParentProcessId":"actor_process_os_pid",
-                "ParentCommandLine":"actor_process_image_command_line",
+                "ParentCommandLine":"actor_process_command_line",
                 "ParentImage":"actor_process_image_path",
                 "ParentUser": "actor_effective_username",
                 'ParentIntegrityLevel': 'actor_process_integrity_level',
