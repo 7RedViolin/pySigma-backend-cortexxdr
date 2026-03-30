@@ -181,7 +181,7 @@ def test_cortexxdr_json_output(cortexxdr_backend : CortexXDRBackend):
                     Image: valueA
                 condition: sel
         """), "json"
-    ) == {"queries":[{"query":'config case_sensitive = false | fpreset=xdr_process | filter (event_type = ENUM.PROCESS and \n event_sub_type = ENUM.PROCESS_START) and \n action_process_image_path = "valueA"', "title":"Test", "id":None, "description":None}]}
+    ) == {"queries":[{"query":'config case_sensitive = false | preset=xdr_process | filter (event_type = ENUM.PROCESS and \n event_sub_type = ENUM.PROCESS_START) and \n action_process_image_path = "valueA"', "title":"Test", "id":None, "description":None}]}
 
 def test_cortexxdr_returned_fields(cortexxdr_backend : CortexXDRBackend):
     assert cortexxdr_backend.convert(

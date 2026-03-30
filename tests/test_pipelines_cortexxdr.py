@@ -129,7 +129,7 @@ def test_cortexxdr_generic_translation_mapping(cortexxdr_backend: CortexXDRBacke
         """)
     ) == ['''config case_sensitive = false | preset=xdr_file | filter event_type = ENUM.FILE and 
  (actor_effective_username = "admin" and 
- actor_process_image_command_line = "cmdline /field=value," and 
+ actor_process_command_line = "cmdline /field=value," and 
  actor_process_image_path = "cmd.exe," and 
  actor_process_logon_id = "logon_id_text," and 
  actor_process_signature_product = "Product Name," and 
@@ -189,7 +189,7 @@ def test_cortexxdr_process_creation_mapping(cortexxdr_backend : CortexXDRBackend
  action_process_cwd = "/current/working/directory," and 
  action_process_os_pid = "1," and 
  actor_process_os_pid = "2," and 
- actor_process_image_command_line = "cmdline2 /field1=value1," and 
+ actor_process_command_line = "cmdline2 /field1=value1," and 
  actor_process_image_path = "explorer.exe," and 
  actor_effective_username = "guest," and 
  actor_process_integrity_level = "Low," and 
