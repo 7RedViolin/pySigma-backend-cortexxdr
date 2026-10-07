@@ -1,10 +1,9 @@
 from typing import Union
-from sigma.pipelines.common import logsource_windows, windows_logsource_mapping
 from sigma.processing.transformations import AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation, SetStateTransformation
-from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition
+from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition, IncludeFieldCondition, RuleContainsDetectionItemCondition
 from sigma.processing.pipeline import QueryPostprocessingItem, ProcessingItem, ProcessingPipeline
 from sigma.processing.postprocessing import QueryPostprocessingTransformation
-from sigma.rule import SigmaDetectionItem, SigmaDetection, SigmaRule
+from sigma.rule import SigmaDetectionItem, SigmaRule
 from sigma.exceptions import SigmaTransformationError
 import re
 import json
@@ -35,38 +34,39 @@ class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation
             output_type = 'default'
 
         self.identifier = 'replace_integrity_thing'
-        field_name = 'action_process_integrity_level'
+        field_names = ['causality_actor_process_integrity_level','actor_process_integrity_level', 'action_process_integrity_level']
 
         super().apply(pipeline, rule, query)
 
-        integrity_level_ranges ={
-            'UNTRUSTED': f'{field_name} lt 4096',
-            'LOW': f'({field_name} gte 4096 and {field_name} lt 8192)',
-            'MEDIUM': f'({field_name} gte 8192 and {field_name} lt 12288)',
-            'HIGH': f'({field_name} gte 12288 and {field_name} lt 16384)',
-            'SYSTEM': f'{field_name} gte 16384'
-        }
+        for field_name in field_names:
+            integrity_level_ranges ={
+                'Untrusted': f'{field_name} lt 4096',
+                'Low': f'({field_name} gte 4096 and {field_name} lt 8192)',
+                'Medium': f'({field_name} gte 8192 and {field_name} lt 12288)',
+                'High': f'({field_name} gte 12288 and {field_name} lt 16384)',
+                'System': f'{field_name} gte 16384'
+            }
 
-        single_pattern = '(?i)' + field_name + ' = "(' + '|'.join(integrity_level_ranges) + ')"'
-        multi_pattern = '(?i)' + field_name + " in \\(((\"(" + '|'.join(integrity_level_ranges) + ")\")((, )*)){1,}\\)"
+            single_pattern = '(?i)' + field_name + ' = "(' + '|'.join(integrity_level_ranges) + ')"'
+            multi_pattern = '(?i)' + field_name + " in \\(((\"(" + '|'.join(integrity_level_ranges) + ")\")((, )*)){1,}\\)"
 
-        if re.search(single_pattern, query): # for single value
-            for level in integrity_level_ranges.items():
-                query = re.sub(f'(?i){field_name} = "{level[0]}"', level[1], query)
+            if re.search(single_pattern, query): # for single value
+                for level in integrity_level_ranges.items():
+                    query = re.sub(f'(?i){field_name} = "{level[0]}"', level[1], query)
 
-        while re.search(multi_pattern, query): # for multiple values
-            matches = re.search(multi_pattern, query)
-            target_string = matches.group(0)
+            while re.search(multi_pattern, query): # for multiple values
+                matches = re.search(multi_pattern, query)
+                target_string = matches.group(0)
 
-            values = (re.sub(f"(?i){field_name} in \\(", '', target_string)).replace(')', '').replace('"', '').split(',')
-            replacement_values = []
+                values = (re.sub(f"(?i){field_name} in \\(", '', target_string)).replace(')', '').replace('"', '').split(',')
+                replacement_values = []
 
-            for value in values:
-                if value.strip().upper() in integrity_level_ranges.keys():
-                    replacement_values.append(integrity_level_ranges[value.strip().upper()])
+                for value in values:
+                    if value.strip().upper() in integrity_level_ranges.keys():
+                        replacement_values.append(integrity_level_ranges[value.strip().upper()])
 
-            replacement_string = '(' + ' or '.join(replacement_values) + ')'
-            query = query.replace(target_string, replacement_string)
+                replacement_string = '(' + ' or '.join(replacement_values) + ')'
+                query = query.replace(target_string, replacement_string)
 
         if output_type == 'json':
             query = json.loads(query)
@@ -194,11 +194,11 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             'category': ['file_change','file_rename','file_delete','file_event'],
             'fields':{
                 **generic_translation_dict,
-                'TargetFilename': 'action_file_name',
-                'SourceFilename': 'action_file_previous_file_name',
+                'TargetFilename': 'action_file_path',
+                'SourceFilename': 'action_file_previous_file_path',
+                'sha256': 'action_file_sha256',
+                'md5': 'action_file_md5',
                 #'sha1': ?,
-                #'sha256': ?,
-                #'md5': ?,
                 #'Hashes': ?,
                 #'CreationUtcTime': ?
             }
@@ -235,25 +235,24 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
         },
         'network':{
             'index': {
-                'name': 'network_story', # or xdr_agent_network - not sure the difference
+                'name': 'network_story',
                 'type': 'preset'
             },
             'category': ['network_connection','firewall'],
             'fields': {
                 **generic_translation_dict,
-                # Have to have local/remote like this because direction isn't defined that I can tell
-                'DestinationPort': ['action_local_port', 'action_remote_port'],
-                'DestinationIp': ['action_local_ip', 'action_remote_ip'],
-                'SourcePort': ['action_local_port', 'action_remote_port'],
-                'SourceIp': ['action_local_ip', 'action_remote_ip'],
+                'DestinationPort': 'action_remote_port',
+                'DestinationIp': 'action_remote_ip',
+                'SourcePort': 'action_local_port',
+                'SourceIp': 'action_local_ip',
                 'Protocol': 'action_network_protocol',
-                'dst_ip': ['action_local_ip', 'action_remote_ip'],
-                'dst_port': ['action_local_port', 'action_remote_port'],
-                'src_ip': ['action_local_ip', 'action_remote_ip'],
-                'src_port': ['action_local_port', 'action_remote_port'],
+                'dst_ip': 'action_remote_ip',
+                'dst_port': 'action_remote_port',
+                'src_ip': 'action_local_ip',
+                'src_port': 'action_local_port',
                 'DestinationHostname': 'action_external_hostname',
                 'SourceHostname': 'agent_hostname',
-                #'Initiated': ?,
+                'Initiated': 'action_network_success',
                 #'SourceIsIpv6': ?,
                 #'SourcePortName': ?,
                 #'DestinationIsIpv6': ?,
@@ -301,6 +300,35 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             rule_condition_linking=any
         )
         for activity_type, details in translation_dict.items()
+    ]
+
+    value_checks = [
+        ProcessingItem(
+            identifier="cb_process_unknown_integrity_level",
+            transformation=DetectionItemFailureTransformation("Integrity Level needs to be one of Protected, System, High, Medium, or Low"),
+            field_name_conditions = [
+                IncludeFieldCondition(fields=["IntegrityLevel"])
+            ],
+            rule_conditions = [
+                RuleContainsDetectionItemCondition(
+                    field="IntegrityLevel", value="Protected"
+                ),
+                RuleContainsDetectionItemCondition(
+                    field="IntegrityLevel", value="System"
+                ),
+                RuleContainsDetectionItemCondition(
+                    field="IntegrityLevel", value="High"
+                ),
+                RuleContainsDetectionItemCondition(
+                    field="IntegrityLevel", value="Medium"
+                ),
+                RuleContainsDetectionItemCondition(
+                    field="IntegrityLevel", value="Low"
+                ),
+            ],
+            rule_condition_linking=any,
+            rule_condition_negation=True,
+        )
     ]
 
     field_mappings = [
@@ -369,6 +397,7 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             *dataset_preset_configuration,
             *os_filter, 
             *event_type_filters,
+            *value_checks,
             *field_mappings,
             *change_logsource_info,
             *unsupported_rule_types,
