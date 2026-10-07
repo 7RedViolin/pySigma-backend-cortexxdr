@@ -15,6 +15,9 @@ It supports the following output formats:
 This backend is currently maintained by:
 
 * [Cori Smith](https://github.com/7RedViolin/)
+* [RCEMaddox](https://github.com/RCEMaddox/)
+
+Please note that this pipeline is not compatible with pySigma v1.0.0+ at this time.
 
 ## Installation
 This can be installed via pip from PyPI or using pySigma's plugin functionality
