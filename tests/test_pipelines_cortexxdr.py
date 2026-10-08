@@ -69,7 +69,7 @@ def test_cortexxdr_integrity_levels_filter_single(cortexxdr_backend: CortexXDRBa
         """)
     ) == ["""config case_sensitive = false | preset=xdr_process | filter (event_type = ENUM.PROCESS and """\
             """event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and """\
-            """(action_process_integrity_level gte 4096 and action_process_integrity_level lt 8192))"""]
+            """action_process_integrity_level = 4096)"""]
 
 def test_cortexxdr_integrity_levels_filter_multiple(cortexxdr_backend: CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -88,8 +88,7 @@ def test_cortexxdr_integrity_levels_filter_multiple(cortexxdr_backend: CortexXDR
         """)
     ) == ["""config case_sensitive = false | preset=xdr_process | filter (event_type = ENUM.PROCESS and """\
             """event_sub_type = ENUM.PROCESS_START) and (agent_os_type = ENUM.AGENT_OS_WINDOWS and """\
-            """(((action_process_integrity_level gte 4096 and action_process_integrity_level lt 8192) or """\
-            """(action_process_integrity_level gte 12288 and action_process_integrity_level lt 16384))))"""]
+            """(action_process_integrity_level in (4096, 12288)))"""]
 
 def test_cortexxdr_generic_translation_mapping(cortexxdr_backend: CortexXDRBackend):
     assert cortexxdr_backend.convert(
@@ -124,10 +123,10 @@ def test_cortexxdr_generic_translation_mapping(cortexxdr_backend: CortexXDRBacke
             """(actor_effective_username = "admin" and actor_process_command_line = "cmdline /field=value" and """\
             """actor_process_image_path = "cmd.exe" and actor_process_logon_id = "logon_id_text" and """\
             """actor_process_signature_product = "Product Name" and actor_process_signature_vendor = "Company Name" and """\
-            """(actor_process_integrity_level gte 12288 and actor_process_integrity_level lt 16384) and """\
+            """actor_process_integrity_level = 12288 and """\
             """actor_process_cwd = "/current/dir/value" and actor_process_os_id = 1 and causality_actor_process_os_id = 2 and """\
             """causality_actor_process_command_line = "cmdline_parent /field1=value1" and causality_actor_process_image_path = "explorer.exe" and """\
-            """causality_actor_effective_username = "guest" and (causality_actor_process_integrity_level gte 8192 and causality_actor_process_integrity_level lt 12288) and """\
+            """causality_actor_effective_username = "guest" and causality_actor_process_integrity_level = 8192 and """\
             """causality_actor_process_logon_id = "logon_id_text_1" and causality_actor_process_signature_product = "Parent Product Name" and """\
             """causality_actor_process_signature_vendor = "Parent Company Name")"""]
 
@@ -166,10 +165,10 @@ def test_cortexxdr_process_creation_mapping(cortexxdr_backend : CortexXDRBackend
             """event_sub_type = ENUM.PROCESS_START) and (action_process_username = "admin" and """\
             """action_process_image_command_line = "cmdline /field=value" and action_process_image_path = "cmd.exe" and """\
             """action_process_logon_id = "logon_id_here" and action_process_signature_product = "Product Name" and """
-            """action_process_signature_vendor = "Company Name" and (action_process_integrity_level gte 12288 and action_process_integrity_level lt 16384) and """\
+            """action_process_signature_vendor = "Company Name" and action_process_integrity_level = 12288 and """\
             """action_process_cwd = "/current/working/directory" and action_process_os_pid = 1 and actor_process_os_pid = 2 and """\
             """actor_process_command_line = "cmdline2 /field1=value1" and actor_process_image_path = "explorer.exe" and """\
-            """actor_effective_username = "guest" and (actor_process_integrity_level gte 4096 and actor_process_integrity_level lt 8192) and """\
+            """actor_effective_username = "guest" and actor_process_integrity_level = 4096 and """\
             """actor_process_logon_id = "logon_id_here_parent" and """\
             """actor_process_signature_product = "Parent Product Name" and actor_process_signature_vendor = "Parent Company Name" and """\
             """action_process_image_md5 = "md5md5md5md5" and action_process_image_sha256 = "sha256sha256sha256")"""]

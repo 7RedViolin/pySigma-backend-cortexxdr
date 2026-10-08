@@ -1,12 +1,8 @@
-from typing import Union
-from sigma.processing.transformations import AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation, SetStateTransformation
+from sigma.processing.transformations import AddConditionTransformation, FieldMappingTransformation, DetectionItemFailureTransformation, RuleFailureTransformation, ChangeLogsourceTransformation, SetStateTransformation, MapStringTransformation, ConvertTypeTransformation
 from sigma.processing.conditions import LogsourceCondition, ExcludeFieldCondition, RuleProcessingItemAppliedCondition, IncludeFieldCondition, RuleContainsDetectionItemCondition
-from sigma.processing.pipeline import QueryPostprocessingItem, ProcessingItem, ProcessingPipeline
-from sigma.processing.postprocessing import QueryPostprocessingTransformation
-from sigma.rule import SigmaDetectionItem, SigmaRule
+from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline
+from sigma.rule import SigmaDetectionItem
 from sigma.exceptions import SigmaTransformationError
-import re
-import json
 
 class InvalidFieldTransformation(DetectionItemFailureTransformation):
     """
@@ -18,61 +14,6 @@ class InvalidFieldTransformation(DetectionItemFailureTransformation):
         field_name = detection_item.field
         self.message = f"Invalid SigmaDetectionItem field name encountered: {field_name}. " + self.message
         raise SigmaTransformationError(self.message)
-
-## Custom QueryPostprocessingTransformation to convert string values in IntegrityLevel field to integer range, if applicable
-class ReplaceIntegrityLevelQueryTransformation(QueryPostprocessingTransformation):
-    """Replace query part specified by regular expression with a given string."""
-
-    def apply(
-        self, pipeline: "sigma.processing.pipeline.ProcessingPipeline", rule: SigmaRule, query: Union[str, dict]
-    ) -> Union[str, dict]:
-
-        if isinstance(query, dict):
-            output_type = 'json'
-            query = json.dumps(query)
-        else:
-            output_type = 'default'
-
-        self.identifier = 'replace_integrity_thing'
-        field_names = ['causality_actor_process_integrity_level','actor_process_integrity_level', 'action_process_integrity_level']
-
-        super().apply(pipeline, rule, query)
-
-        for field_name in field_names:
-            integrity_level_ranges ={
-                'Untrusted': f'{field_name} lt 4096',
-                'Low': f'({field_name} gte 4096 and {field_name} lt 8192)',
-                'Medium': f'({field_name} gte 8192 and {field_name} lt 12288)',
-                'High': f'({field_name} gte 12288 and {field_name} lt 16384)',
-                'System': f'{field_name} gte 16384'
-            }
-
-            single_pattern = '(?i)' + field_name + ' = "(' + '|'.join(integrity_level_ranges) + ')"'
-            multi_pattern = '(?i)' + field_name + " in \\(((\"(" + '|'.join(integrity_level_ranges) + ")\")((, )*)){1,}\\)"
-
-            if re.search(single_pattern, query): # for single value
-                for level in integrity_level_ranges.items():
-                    query = re.sub(f'(?i){field_name} = "{level[0]}"', level[1], query)
-
-            while re.search(multi_pattern, query): # for multiple values
-                matches = re.search(multi_pattern, query)
-                target_string = matches.group(0)
-
-                values = (re.sub(f"(?i){field_name} in \\(", '', target_string)).replace(')', '').replace('"', '').split(',')
-                replacement_values = []
-
-                for value in values:
-                    if value.strip().upper() in integrity_level_ranges.keys():
-                        replacement_values.append(integrity_level_ranges[value.strip().upper()])
-
-                replacement_string = '(' + ' or '.join(replacement_values) + ')'
-                query = query.replace(target_string, replacement_string)
-
-        if output_type == 'json':
-            query = json.loads(query)
-
-        return query
-
 
 def CortexXDR_pipeline() -> ProcessingPipeline:
 
@@ -302,12 +243,12 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
         for activity_type, details in translation_dict.items()
     ]
 
-    value_checks = [
+    value_transformations = [
         ProcessingItem(
-            identifier="cb_process_unknown_integrity_level",
+            identifier="cortex_process_unknown_integrity_level",
             transformation=DetectionItemFailureTransformation("Integrity Level needs to be one of Protected, System, High, Medium, or Low"),
             field_name_conditions = [
-                IncludeFieldCondition(fields=["IntegrityLevel"])
+                IncludeFieldCondition(fields=["IntegrityLevel", "ParentIntegrityLevel"])
             ],
             rule_conditions = [
                 RuleContainsDetectionItemCondition(
@@ -325,9 +266,50 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
                 RuleContainsDetectionItemCondition(
                     field="IntegrityLevel", value="Low"
                 ),
+                RuleContainsDetectionItemCondition(
+                    field="ParentIntegrityLevel", value="Protected"
+                ),
+                RuleContainsDetectionItemCondition(
+                    field="ParentIntegrityLevel", value="System"
+                ),
+                RuleContainsDetectionItemCondition(
+                    field="ParentIntegrityLevel", value="High"
+                ),
+                RuleContainsDetectionItemCondition(
+                    field="ParentIntegrityLevel", value="Medium"
+                ),
+                RuleContainsDetectionItemCondition(
+                    field="ParentIntegrityLevel", value="Low"
+                ),
             ],
             rule_condition_linking=any,
             rule_condition_negation=True,
+        ),
+        ProcessingItem(
+            identifier="cortex_replace_integrity_level",
+            transformation=MapStringTransformation(
+                {
+                    "Protected": "20480",
+                    "System": "16384",
+                    "High": "12288",
+                    "Medium_Plus": "8448",
+                    "Medium": "8192",
+                    "Low": "4096",
+                    "Untrusted": "0",
+                }
+            ),
+            field_name_conditions=[
+                IncludeFieldCondition(fields=["IntegrityLevel", "ParentIntegrityLevel"])
+            ],
+        ),
+        ProcessingItem(
+            identifier="cortex_convert_integrity_level_to_num",
+            transformation=ConvertTypeTransformation(
+                target_type="num"
+            ),
+            field_name_conditions = [
+                IncludeFieldCondition(fields=["IntegrityLevel", "ParentIntegrityLevel"])
+            ]
         )
     ]
 
@@ -397,15 +379,9 @@ def CortexXDR_pipeline() -> ProcessingPipeline:
             *dataset_preset_configuration,
             *os_filter, 
             *event_type_filters,
-            *value_checks,
+            *value_transformations,
             *field_mappings,
             *change_logsource_info,
             *unsupported_rule_types,
-        ],
-        postprocessing_items=[
-            QueryPostprocessingItem(
-                identifier=f'replace_integrity_level',
-                transformation=ReplaceIntegrityLevelQueryTransformation(),
-            ),
         ],
     )
